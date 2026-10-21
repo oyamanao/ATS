@@ -29,7 +29,7 @@ class StepIndicator extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -53,7 +53,7 @@ class StepIndicator extends StatelessWidget {
                         child: Container(
                           width: 2,
                           color: step.status == StepStatus.success
-                              ? const Color(0xFF16A34A).withValues(alpha: 0.4)
+                              ? const Color(0xFF16A34A).withOpacity(0.4)
                               : Colors.grey.shade200,
                           margin: const EdgeInsets.symmetric(vertical: 4),
                         ),

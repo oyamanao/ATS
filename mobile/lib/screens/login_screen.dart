@@ -86,15 +86,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: Colors.white.withOpacity(0.08),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.18),
+                      color: Colors.white.withOpacity(0.18),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                        color: const Color(0xFF6366F1).withOpacity(0.3),
                         blurRadius: 30,
                         spreadRadius: 2,
                       ),
@@ -135,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Multi-layer cryptographic and hardware-enforced presence verification',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: Colors.white.withOpacity(0.7),
                     fontSize: 13.5,
                     height: 1.4,
                   ),
@@ -146,10 +146,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding:
                       const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(16),
-                    border:
-                        Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
                   ),
                   child: Column(
                     children: [
@@ -178,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF0F172A),
                       elevation: 4,
-                      shadowColor: Colors.black.withValues(alpha: 0.3),
+                      shadowColor: Colors.black.withOpacity(0.3),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -233,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       'Restricted strictly to @iiitdwd.ac.in accounts',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
+                        color: Colors.white.withOpacity(0.6),
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
                       ),
@@ -257,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.85),
+            color: Colors.white.withOpacity(0.85),
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),

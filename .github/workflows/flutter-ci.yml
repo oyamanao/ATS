@@ -5,10 +5,12 @@ on:
     branches: [main, develop]
     paths:
       - 'mobile/**'
+      - '.github/workflows/flutter-ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'mobile/**'
+      - '.github/workflows/flutter-ci.yml'
 
 jobs:
   flutter-check:
@@ -19,10 +21,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
           channel: 'stable'
           cache: true
 

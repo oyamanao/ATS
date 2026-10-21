@@ -80,7 +80,7 @@ class _QRScanScreenState extends State<QRScanScreen> {
           // Darkened overlay around viewfinder
           ColorFiltered(
             colorFilter: ColorFilter.mode(
-              Colors.black.withValues(alpha: 0.55),
+              Colors.black.withOpacity(0.55),
               BlendMode.srcOut,
             ),
             child: Stack(
@@ -150,9 +150,9 @@ class _QRScanScreenState extends State<QRScanScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
+                color: Colors.black.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
               ),
               child: const Column(
                 children: [

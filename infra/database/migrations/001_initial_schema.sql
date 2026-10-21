@@ -1,19 +1,55 @@
 -- =============================================================================
--- Migration 001 — Initial Schema
--- Cheat-Proof Attendance System — Database Schema
---
--- This is the initial migration that establishes all core tables, RLS
--- policies, triggers, and indexes from scratch.
---
--- Applied: Run once against a fresh Supabase PostgreSQL instance.
--- Idempotent: Yes — all statements use IF NOT EXISTS / OR REPLACE guards.
+-- Migration 001: Initial Schema
+-- Supports both Self-Hosted Supabase and Direct PostgreSQL Deployments
 -- =============================================================================
 
--- ---------------------------------------------------------------------------
--- Table: student_devices
--- Maps each student account to their hardware-bound public key.
--- The private key NEVER leaves the student's device hardware security chip.
--- ---------------------------------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS auth;
+
+DO $$ BEGIN
+    CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn', 'phone');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE auth.code_challenge_method AS ENUM ('s256', 'plain');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE TABLE IF NOT EXISTS auth.users (
+    instance_id           UUID NULL,
+    id                    UUID NOT NULL UNIQUE,
+    aud                   VARCHAR(255) NULL,
+    "role"                VARCHAR(255) NULL,
+    email                 VARCHAR(255) NULL UNIQUE,
+    encrypted_password    VARCHAR(255) NULL,
+    confirmed_at          TIMESTAMPTZ NULL,
+    invited_at            TIMESTAMPTZ NULL,
+    confirmation_token    VARCHAR(255) NULL,
+    confirmation_sent_at  TIMESTAMPTZ NULL,
+    recovery_token        VARCHAR(255) NULL,
+    recovery_sent_at      TIMESTAMPTZ NULL,
+    email_change_token    VARCHAR(255) NULL,
+    email_change          VARCHAR(255) NULL,
+    email_change_sent_at  TIMESTAMPTZ NULL,
+    last_sign_in_at       TIMESTAMPTZ NULL,
+    raw_app_meta_data     JSONB NULL,
+    raw_user_meta_data    JSONB NULL,
+    is_super_admin        BOOLEAN NULL,
+    created_at            TIMESTAMPTZ NULL DEFAULT timezone('utc', now()),
+    updated_at            TIMESTAMPTZ NULL DEFAULT timezone('utc', now()),
+    CONSTRAINT users_pkey PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS public.student_devices (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id    UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -22,11 +58,6 @@ CREATE TABLE IF NOT EXISTS public.student_devices (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now())
 );
 
--- ---------------------------------------------------------------------------
--- Table: processed_tokens
--- Tracks each consumed TOTP token to prevent replay attacks.
--- Tokens older than 5 minutes are purged automatically.
--- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.processed_tokens (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     token      TEXT NOT NULL UNIQUE,
@@ -34,10 +65,6 @@ CREATE TABLE IF NOT EXISTS public.processed_tokens (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now())
 );
 
--- ---------------------------------------------------------------------------
--- Table: attendance_logs
--- Immutable record of all successfully verified attendance events.
--- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.attendance_logs (
     id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -46,32 +73,29 @@ CREATE TABLE IF NOT EXISTS public.attendance_logs (
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now())
 );
 
--- =============================================================================
--- Row Level Security (RLS)
--- =============================================================================
 ALTER TABLE public.student_devices    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.processed_tokens   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attendance_logs    ENABLE ROW LEVEL SECURITY;
 
--- Students may only read their own registered device record
-CREATE POLICY "students_view_own_device"
-    ON public.student_devices
-    FOR SELECT
-    USING (auth.uid() = user_id);
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS UUID AS $$
+  SELECT NULLIF(current_setting('request.jwt.claim.sub', true), '')::UUID;
+$$ LANGUAGE sql STABLE;
 
--- Students may only read their own attendance history
-CREATE POLICY "students_view_own_attendance"
-    ON public.attendance_logs
-    FOR SELECT
-    USING (auth.uid() = user_id);
+CREATE OR REPLACE FUNCTION auth.role() RETURNS TEXT AS $$
+  SELECT NULLIF(current_setting('request.jwt.claim.role', true), '')::TEXT;
+$$ LANGUAGE sql STABLE;
 
--- processed_tokens is backend-only (service role key). No client policies needed.
+DO $$
+BEGIN
+    EXECUTE 'CREATE POLICY "students_view_own_device" ON public.student_devices FOR SELECT USING (auth.uid() = user_id);';
+    EXECUTE 'CREATE POLICY "students_view_own_attendance" ON public.attendance_logs FOR SELECT USING (auth.uid() = user_id);';
+    EXECUTE 'CREATE POLICY "allow_all_service_role_devices" ON public.student_devices FOR ALL USING (true);';
+    EXECUTE 'CREATE POLICY "allow_all_service_role_tokens" ON public.processed_tokens FOR ALL USING (true);';
+    EXECUTE 'CREATE POLICY "allow_all_service_role_logs" ON public.attendance_logs FOR ALL USING (true);';
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
--- =============================================================================
--- Automated Token Cleanup
--- Removes TOTP tokens older than 5 minutes to keep the table lean.
--- Triggered after every INSERT into processed_tokens.
--- =============================================================================
 CREATE OR REPLACE FUNCTION public.delete_expired_tokens()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -90,9 +114,6 @@ CREATE TRIGGER trigger_cleanup_tokens
     FOR EACH STATEMENT
     EXECUTE FUNCTION public.delete_expired_tokens();
 
--- =============================================================================
--- Indexes for query performance
--- =============================================================================
 CREATE INDEX IF NOT EXISTS idx_attendance_logs_user_id
     ON public.attendance_logs(user_id);
 

@@ -29,7 +29,7 @@ class PrimaryButton extends StatelessWidget {
           disabledBackgroundColor: Colors.grey.shade300,
           disabledForegroundColor: Colors.grey.shade500,
           elevation: onPressed == null || isLoading ? 0 : 2,
-          shadowColor: color.withValues(alpha: 0.4),
+          shadowColor: color.withOpacity(0.4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
