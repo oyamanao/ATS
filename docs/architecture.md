@@ -26,7 +26,7 @@ The system enforces physical and cryptographic attendance validation using a **D
 │  └───────────┬───────────┘  └────────────┬────────────┘  └────────────┬─────────────┘  │
 │              │                           │                            │                │
 │  ┌───────────▼───────────────────────────▼────────────────────────────▼─────────────┐  │
-│  │ 4. Hardware Key Signature (Biometric Fingerprint + Secure Enclave / KeyStore)     │  │
+│  │ 4. Hardware Key Signature (Biometric Fingerprint + Secure Enclave / KeyStore)    │  │
 │  └───────────────────────────────────────┬──────────────────────────────────────────┘  │
 └──────────────────────────────────────────┼─────────────────────────────────────────────┘
                                            │ Encrypted JSON over Local Wi-Fi (Intranet)
