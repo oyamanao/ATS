@@ -11,7 +11,8 @@ dependencies:
     sdk: flutter
   supabase_flutter: ^2.8.0
   geolocator: ^13.0.1
-  flutter_beacon: ^0.5.1
+  flutter_beacon:
+    path: packages/flutter_beacon
   network_info_plus: ^6.1.0
   biometric_signature: ^13.2.0
   mobile_scanner: ^5.2.3

@@ -1,0 +1,22 @@
+group 'com.flutterbeacon'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'com.android.library'
+
+android {
+    namespace "com.flutterbeacon"
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 21
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+}
+
+dependencies {
+    api 'androidx.legacy:legacy-support-v4:1.0.0'
+    api "org.altbeacon:android-beacon-library:2.19"
+}
