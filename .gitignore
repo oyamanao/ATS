@@ -1,0 +1,36 @@
+# ─── Node.js ──────────────────────────────────────────────────────────────────
+backend/node_modules/
+backend/.env
+backend/coverage/
+
+# ─── Flutter / Dart ───────────────────────────────────────────────────────────
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.pub-cache/
+mobile/build/
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/key.properties
+mobile/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+mobile/ios/.symlinks/
+mobile/ios/Flutter/Flutter.framework
+mobile/ios/Flutter/Flutter.podspec
+mobile/ios/Flutter/Generated.xcconfig
+mobile/ios/Flutter/flutter_export_environment.sh
+mobile/ios/Flutter/ephemeral/
+mobile/ios/Pods/
+mobile/ios/Runner.xcworkspace/
+mobile/ios/Runner/GeneratedPluginRegistrant.*
+
+# ─── ESP32 / Arduino ──────────────────────────────────────────────────────────
+firmware/**/*.elf
+firmware/**/*.bin
+firmware/**/*.hex
+
+# ─── General ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+.vscode/settings.json

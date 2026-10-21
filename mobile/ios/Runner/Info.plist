@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleDisplayName</key>
+    <string>IIITDWD Attendance</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>attendance_app</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(FLUTTER_BUILD_NAME)</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleVersion</key>
+    <string>$(FLUTTER_BUILD_NUMBER)</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>UIMainStoryboardFile</key>
+    <string>Main</string>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+
+    <!-- Layer 1: Hardware Device GPS & Campus Verification -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Location is strictly required to verify physical campus presence and detect simulated GPS coordinates.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Location is required to verify campus presence for indoor attendance.</string>
+
+    <!-- Layer 2 & 3: Local Network & Bluetooth iBeacon Presence -->
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Bluetooth is required to detect the classroom ESP32 iBeacon signal strength for physical room verification.</string>
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>Bluetooth is used to detect proximity to the classroom beacon.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Access to the university local intranet is required to transmit cryptographically signed attendance tokens.</string>
+
+    <!-- Layer 4: Camera for Dynamic QR scanning -->
+    <key>NSCameraUsageDescription</key>
+    <string>Camera access is required to scan the rolling 10-second dynamic attendance QR code on the teacher screen.</string>
+
+    <!-- Layer 5: Biometric Hardware Key Signing (Secure Enclave) -->
+    <key>NSFaceIDUsageDescription</key>
+    <string>Face ID or Touch ID is required to cryptographically sign your attendance token using your device's hardware Secure Enclave.</string>
+
+    <!-- Deep Link Configuration for Supabase OAuth Callback -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>com.iiitdwd.attendance</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>attendanceapp</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>

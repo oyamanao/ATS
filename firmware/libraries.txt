@@ -1,0 +1,12 @@
+Required Arduino Libraries (install via Arduino Library Manager):
+
+1. NimBLE-Arduino (by h2zero)
+   - Version: >= 1.4.0
+   - Purpose: BLE iBeacon advertisement
+
+Board Manager URL (if not present):
+  https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+
+Arduino IDE Board: "ESP32 Dev Module"
+Upload Speed: 921600
+Flash Frequency: 80MHz
