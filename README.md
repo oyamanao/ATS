@@ -32,7 +32,7 @@ Traditional attendance systems rely on single-factor checks (static QR codes, si
 │  └───────────┬───────────┘  └────────────┬────────────┘  └────────────┬─────────────┘  │
 │              │                           │                            │                │
 │  ┌───────────▼───────────────────────────▼────────────────────────────▼─────────────┐  │
-│  │ 4. Hardware Key Signature (Biometric Fingerprint + Secure Enclave / KeyStore)     │  │
+│  │ 4. Hardware Key Signature (Biometric Fingerprint + Secure Enclave / KeyStore)    │  │
 │  └───────────────────────────────────────┬──────────────────────────────────────────┘  │
 └──────────────────────────────────────────┼─────────────────────────────────────────────┘
                                            │ Encrypted JSON over Local Wi-Fi (Intranet)
