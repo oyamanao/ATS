@@ -52,4 +52,4 @@ jobs:
       - name: Build APK (release, obfuscated)
         if: github.ref == 'refs/heads/main'
         working-directory: mobile
-        run: flutter build apk --release --obfuscate --split-debug-info=build/debug-info
+        run: flutter build apk --release --obfuscate --split-debug-info=build/debug-info --android-skip-build-dependency-validation
