@@ -1,7 +1,7 @@
 # Cheat-Proof Indoor Attendance System (ATS)
 
-[![Backend CI](https://github.com/iiitdwd/ats/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/iiitdwd/ats/actions/workflows/backend-ci.yml)
-[![Flutter CI](https://github.com/iiitdwd/ats/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/iiitdwd/ats/actions/workflows/flutter-ci.yml)
+[![Backend CI](https://github.com/oyamanao/ats/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/iiitdwd/ats/actions/workflows/backend-ci.yml)
+[![Flutter CI](https://github.com/oyamanao/ats/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/iiitdwd/ats/actions/workflows/flutter-ci.yml)
 ![Node Version](https://img.shields.io/badge/Node.js-20%2B-green.svg)
 ![Flutter Version](https://img.shields.io/badge/Flutter-3.24%2B-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-purple.svg)
