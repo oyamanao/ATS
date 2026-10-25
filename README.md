@@ -114,31 +114,47 @@ ATS/
 
 ## ⚡ Quick Start
 
-### 1. Database & Infrastructure
-```bash
-# Clone Supabase Docker and apply our OAuth override
-git clone --depth 1 https://github.com/supabase/supabase
-cd supabase/docker
-cp /path/to/ATS/infra/docker-compose.override.yml .
-docker compose up -d
+### 1. Remote server setup
+From the project root on your server:
 
-# Execute database schema
-psql -h localhost -p 5432 -U postgres -d postgres -f /path/to/ATS/infra/database/schema.sql
+```bash
+cp .env.example .env
+# Edit .env and set your real host values, especially:
+# APP_PUBLIC_URL=http://<REMOTE_IP>:3000
+# SUPABASE_SERVICE_ROLE_KEY=...
+# JWT_SECRET=...
+
+docker compose up -d --build
 ```
 
-### 2. Node.js Intranet Backend
+This starts the full stack automatically:
+- PostgreSQL
+- PostgREST
+- GoTrue auth
+- NGINX gateway
+- ATS backend API
+
+The only host port exposed is `3000`, so the backend is reachable at:
+
+```text
+http://<REMOTE_IP>:3000
+```
+
+The teacher projector route is available at:
+
+```text
+http://<REMOTE_IP>:3000/teacher/display?classId=CS101
+```
+
+### 2. Local development (optional)
+If you want to run only the backend locally without Docker:
+
 ```bash
 cd backend
-npm install
 cp .env.example .env
-# Edit .env with your Supabase keys
+npm install
 npm test
 npm start
-```
-
-Access the **Teacher Projector Display** at:
-```
-http://192.168.10.50:3000/teacher/display?classId=CS101
 ```
 
 ### 3. ESP32 Classroom Beacon
