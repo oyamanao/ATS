@@ -11,8 +11,12 @@
  * Library:  NimBLE-Arduino (install via Arduino Library Manager)
  */
 
+#if __has_include(<NimBLEDevice.h>)
 #include <NimBLEDevice.h>
 #include <NimBLEBeacon.h>
+#else
+#error "NimBLE-Arduino is required. Install the 'NimBLE-Arduino' library by h2zero in Arduino IDE > Sketch > Include Library > Manage Libraries, then recompile."
+#endif
 
 // ─── Classroom Identity ───────────────────────────────────────────────────────
 // Generate a unique UUID for each classroom via https://www.uuidgenerator.net/

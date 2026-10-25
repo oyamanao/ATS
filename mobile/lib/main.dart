@@ -8,13 +8,17 @@ import 'config/constants.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: AppConstants.supabaseLocalUrl,
-    publishableKey: AppConstants.supabaseAnonKey,
-    authOptions: const FlutterAuthClientOptions(
-      authFlowType: AuthFlowType.pkce,
-    ),
-  );
+  if (AppConstants.isSupabaseConfigured) {
+    await Supabase.initialize(
+      url: AppConstants.supabaseLocalUrl,
+      publishableKey: AppConstants.supabaseAnonKey,
+      authOptions: const FlutterAuthClientOptions(
+        authFlowType: AuthFlowType.pkce,
+      ),
+    );
+  } else {
+    debugPrint('Supabase is not configured; starting in local demo mode without remote auth.');
+  }
 
   runApp(const AttendanceApp());
 }

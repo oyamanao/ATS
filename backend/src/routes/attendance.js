@@ -26,6 +26,10 @@ const router = express.Router();
  *   8. Record token + log attendance
  */
 router.post('/mark', verifySession, attendanceLimiter, async (req, res) => {
+  if (!supabase) {
+    return res.status(503).json({ error: 'Attendance service unavailable: Supabase is not configured.' });
+  }
+
   const { qrPayload, signature } = req.body;
   const userId = req.user.id;
   const userEmail = req.user.email;
