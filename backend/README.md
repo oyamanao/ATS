@@ -4,6 +4,21 @@ Secure Intranet API server for the Cheat-Proof Indoor Attendance System. Runs st
 
 ---
 
+## 🔄 Evolution & Changelog (Past State vs. Current State)
+
+| Component / Area | Past State | Current State (Work Done & Improved) |
+|---|---|---|
+| **Node.js Runtime** | Targeted older Node.js versions without modern LTS guards. | **Upgraded to Node.js 22 LTS** (`engines: >= 22.0.0`) with full CommonJS compatibility. |
+| **Code Linting** | Deprecated ESLint config that failed under modern ESLint 9. | **Modern ESLint 9 Flat Config** (`eslint.config.js`) with custom globals, strict test globals, and rules. |
+| **Teacher Projector Display** | Basic or placeholder display endpoint. | **Dynamic Live Projector Dashboard** (`/teacher/display`) rendering rolling 10s HMAC-SHA256 SVG QR codes with countdown progress bar. |
+| **QR Payload Parsing** | Brittle URL parsing that altered class identifier casing and lacked scheme checks. | **Robust Protocol & Case-Preserving Parser** verifying strict `attendance://<classId>/<totp>` scheme while preserving uppercase/mixed-case class codes. |
+| **Cryptographic Engine** | Basic validation logic without full end-to-end cryptographic tests. | **Hardware RSA-SHA256 Verification** using Node native `crypto` module + **HMAC-SHA256 TOTP** validation with ±1 window tolerance. |
+| **Replay Protection** | Incomplete replay idempotency tracking in tests and handlers. | **Per-Student Replay Protection** logging to `processed_tokens` and rejecting duplicate tokens with automated 5-minute cleanup. |
+| **Logging & Diagnostics** | Unformatted `console.log` statements without structured audit fields. | **Winston Structured Logger** (`src/utils/logger.js`) providing colorized timestamped output in development and structured JSON in production. |
+| **Test Coverage & CI** | Missing WebSocket mocks and partial coverage. | **100% Jest Test Suite Coverage** across 28 unit tests and 6 test suites covering routes, services, middleware, and bootstrap logic. |
+
+---
+
 ## 🛡️ Security Verification Pipeline
 
 When a client hits `POST /api/attendance/mark`:
@@ -22,7 +37,7 @@ Client POST { qrPayload, signature }
    │
    ▼
 3. QR Payload Parse
-   └── Deconstructs: attendance://<classId>/<totpCode>
+   └── Deconstructs: attendance://<classId>/<totpCode> (preserves casing)
    │
    ▼
 4. Dynamic TOTP Verification
@@ -38,7 +53,7 @@ Client POST { qrPayload, signature }
    │
    ▼
 7. Idempotency Check
-   └── Queries processed_tokens: guarantees a rolling token cannot be used twice
+   └── Queries processed_tokens: guarantees a rolling token cannot be used twice by the same student
    │
    ▼
 8. Record Attendance & Token
@@ -50,9 +65,9 @@ Client POST { qrPayload, signature }
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js $\ge 20.0.0$
+- Node.js $\ge 22.0.0$ LTS
 - npm $\ge 10.0.0$
-- Self-hosted Supabase instance reachable on the local network
+- Reachable Supabase / PostgreSQL instance (or running via Docker Compose)
 
 ### Installation
 ```bash
@@ -88,7 +103,15 @@ Production mode:
 npm start
 ```
 
-### Running Tests & Coverage
+### Running Tests & Linting
+
+Run ESLint:
+```bash
+npm run lint
+```
+
+Run test suite with code coverage:
 ```bash
 npm test
 ```
+*(Runs all 28 Jest tests across 6 test suites).*

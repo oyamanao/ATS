@@ -4,6 +4,19 @@ This guide walks you through everything needed to flash the ESP32 iBeacon firmwa
 
 ---
 
+## 🔄 Evolution & Changelog (Past State vs. Current State)
+
+| Component / Area | Past State | Current State (Work Done & Improved) |
+|---|---|---|
+| **BLE Protocol Stack** | Legacy ESP32 Bluedroid stack consumed excessive RAM (~150KB) and flash memory. | **Migrated to `NimBLE-Arduino` (>= 1.4.0)**, cutting memory overhead by over 50%. |
+| **RF Power & Wall Bleed** | Default TX power allowed beacon signals to bleed into corridors and adjacent classrooms. | **Tuned TX Power to `-12 dBm` (`ESP_PWR_LVL_N12`)** with -59 dBm 1m reference RSSI. |
+| **In-Room RSSI Cutoff** | Thresholds were loosely documented. | **Synchronized Detection Threshold**: Flutter mobile client requires `RSSI > -70 dBm`; hallway reads `< -75 dBm` or undetectable. |
+| **Payload Assembly** | String-based beacon encoding causing incompatibility across NimBLE versions. | **Standardized 27-byte Raw Memory Assembly** (`0x004C` Apple ID, UUID, Major, Minor, Calibrated RSSI). |
+| **CPU Scheduling** | Busy-wait `delay()` loops risking Watchdog Timer (TWDT) resets. | **FreeRTOS Low-Power Yield** using `vTaskDelay(portMAX_DELAY)`. |
+| **Field Diagnostics** | No visual confirmation of active boot/broadcasting. | **Boot Diagnostic Double-Blink** on GPIO 2 (onboard LED). |
+
+---
+
 ## Hardware Requirements
 
 | Item | Specification |

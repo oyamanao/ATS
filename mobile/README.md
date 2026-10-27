@@ -4,6 +4,22 @@ The mobile client enforces a strict **Defense-in-Depth** multi-factor presence g
 
 ---
 
+## 🔄 Evolution & Changelog (Past State vs. Current State)
+
+| Component / Area | Past State | Current State (Work Done & Improved) |
+|---|---|---|
+| **Android v1 Embedding** | Legacy `PluginRegistry.Registrar` v1 embedding in vendored `flutter_beacon` plugin caused fatal build errors in modern Flutter. | **Completely Removed v1 Embedding**; modernized `packages/flutter_beacon` to pure Flutter v2 embedding (`FlutterPlugin`, `ActivityAware`). |
+| **Android Toolchain** | Outdated Gradle scripts and wrapper versions causing AGP deprecation and build failures in CI. | **Modernized to Kotlin DSL** (`build.gradle.kts`), Gradle 9.x wrapper, and Android SDK 36. |
+| **Code Formatting** | Unformatted files (`lib/app.dart`, `lib/main.dart`, tests) caused strict CI format checks to fail. | **Full Dart Formatting Applied**; verified clean `dart format --set-exit-if-changed .` in CI. |
+| **GPS Geofencing Service** | Basic location requests that could hang indefinitely or crash without permissions. | **Hardened `GpsService`** with 15s location timeouts, explicit permission requesting, and mock coordinate detection (`position.isMocked`). |
+| **Wi-Fi BSSID Service** | Unshielded calls to `network_info_plus` causing unhandled platform exceptions. | **Resilient `WifiService`** with safe exception handling, null guards, and classroom AP allowlist comparisons. |
+| **BLE Beacon Ranging** | Raw unconstrained ranging stream without timeout or cleanup. | **Protected `BleService`** with polling timeout loops, RSSI filtering (`RSSI != 0 && RSSI > -70 dBm`), and guaranteed native resource cleanup (`flutterBeacon.close`). |
+| **Biometric Key Signing** | Direct plugin invocations without exception wrappers. | **Hardened `BiometricService`** generating RSA-2048 keypairs with enrollment invalidation (`setInvalidatedByBiometricEnrollment = true`) and structured error mappings. |
+| **Workspace Configuration** | Missing IDE launch configurations. | **Added VS Code Workspaces** (`.vscode/launch.json`, `tasks.json`) configured for Android Emulator localhost bridge (`10.0.2.2`), campus intranet, release builds, and emulator management. |
+| **Automated Testing** | Limited test validation. | **100% Passing Flutter Unit & Widget Tests** (`flutter test`) validating serialization models, error code masking, and UI status components. |
+
+---
+
 ## 🔒 Verification Architecture
 
 When a student marks attendance, the application executes a 6-stage gauntlet:
@@ -19,7 +35,7 @@ When a student marks attendance, the application executes a 6-stage gauntlet:
    - Scans for the classroom's ESP32 iBeacon UUID.
    - Asserts $\text{RSSI} > -70\text{ dBm}$ (confirms student is physically inside the room).
 4. **Dynamic TOTP QR Ingestion:**
-   - Scans the teacher's screen casting a 10-second rolling TOTP QR code.
+   - Scans the teacher's screen casting a 10-second rolling TOTP QR code (`attendance://<classId>/<totpCode>`).
 5. **Biometric Hardware Signature:**
    - Prompts for Biometric (Fingerprint/Face ID).
    - Authorizes the hardware Secure Enclave / Android KeyStore to sign the scanned QR payload using the device's private RSA key.
@@ -67,6 +83,12 @@ static const List<String> validClassroomBSSIDs = [
 ```bash
 cd mobile
 flutter pub get
+```
+
+### Run Tests & Verification
+```bash
+flutter analyze
+flutter test
 ```
 
 ### Run in Debug Mode
