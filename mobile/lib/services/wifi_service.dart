@@ -8,7 +8,12 @@ class WifiService {
 
   /// Throws [AttendanceException] if the device is not on the classroom Wi-Fi.
   Future<void> verifyBssid() async {
-    final String? bssid = await _networkInfo.getWifiBSSID();
+    final String? bssid;
+    try {
+      bssid = await _networkInfo.getWifiBSSID();
+    } catch (_) {
+      throw const AttendanceException(VerificationError.wrongNetwork);
+    }
 
     if (bssid == null ||
         !AppConstants.validClassroomBSSIDs

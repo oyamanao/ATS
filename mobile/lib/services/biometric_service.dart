@@ -9,37 +9,49 @@ class BiometricService {
   /// Returns the base64/PEM-encoded public key for upload to the server.
   /// Throws [AttendanceException] on failure.
   Future<String> createHardwareKey() async {
-    final KeyCreationResult result = await _plugin.createKeys(
-      promptMessage:
-          'Authenticate to register your device key with the faculty advisor',
-      config: CreateKeysConfig(
-        enforceBiometric: true,
-        setInvalidatedByBiometricEnrollment: true,
-      ),
-    );
+    try {
+      final KeyCreationResult result = await _plugin.createKeys(
+        promptMessage:
+            'Authenticate to register your device key with the faculty advisor',
+        config: CreateKeysConfig(
+          enforceBiometric: true,
+          setInvalidatedByBiometricEnrollment: true,
+        ),
+      );
 
-    final publicKey = result.publicKey;
-    if (publicKey == null || publicKey.isEmpty) {
+      final publicKey = result.publicKey;
+      if (publicKey == null || publicKey.isEmpty) {
+        throw const AttendanceException(VerificationError.biometricFailed);
+      }
+
+      return publicKey;
+    } on AttendanceException {
+      rethrow;
+    } catch (_) {
       throw const AttendanceException(VerificationError.biometricFailed);
     }
-
-    return publicKey;
   }
 
   /// Signs [payload] using the hardware-bound private key.
   /// Returns base64-encoded signature.
   Future<String> signPayload(String payload) async {
-    final SignatureResult result = await _plugin.createSignature(
-      payload: payload,
-      promptMessage:
-          'Scan fingerprint to cryptographically sign your attendance',
-    );
+    try {
+      final SignatureResult result = await _plugin.createSignature(
+        payload: payload,
+        promptMessage:
+            'Scan fingerprint to cryptographically sign your attendance',
+      );
 
-    final signature = result.signature;
-    if (signature == null || signature.isEmpty) {
+      final signature = result.signature;
+      if (signature == null || signature.isEmpty) {
+        throw const AttendanceException(VerificationError.biometricFailed);
+      }
+
+      return signature;
+    } on AttendanceException {
+      rethrow;
+    } catch (_) {
       throw const AttendanceException(VerificationError.biometricFailed);
     }
-
-    return signature;
   }
 }

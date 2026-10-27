@@ -21,15 +21,14 @@ part 'beacon/ranging_result.dart';
 part 'beacon/region.dart';
 
 /// Singleton instance for accessing scanning API.
-final FlutterBeacon flutterBeacon = new FlutterBeacon._internal();
+final FlutterBeacon flutterBeacon = FlutterBeacon._internal();
 
 /// Provide iBeacon scanning API for both Android and iOS.
 class FlutterBeacon {
   FlutterBeacon._internal();
 
   /// Method Channel used to communicate to native code.
-  static const MethodChannel _methodChannel =
-      const MethodChannel('flutter_beacon');
+  static const MethodChannel _methodChannel = MethodChannel('flutter_beacon');
 
   /// Event Channel used to communicate to native code ranging beacons.
   static const EventChannel _rangingChannel =
@@ -227,11 +226,9 @@ class FlutterBeacon {
   ///
   /// This will fires [BluetoothState] whenever bluetooth state changed.
   Stream<BluetoothState> bluetoothStateChanged() {
-    if (_onBluetoothState == null) {
-      _onBluetoothState = _bluetoothStateChangedChannel
-          .receiveBroadcastStream()
-          .map((dynamic event) => BluetoothState.parse(event));
-    }
+    _onBluetoothState ??= _bluetoothStateChangedChannel
+        .receiveBroadcastStream()
+        .map((dynamic event) => BluetoothState.parse(event));
     return _onBluetoothState!;
   }
 
@@ -239,11 +236,9 @@ class FlutterBeacon {
   ///
   /// This will fires [AuthorizationStatus] whenever authorization status changed.
   Stream<AuthorizationStatus> authorizationStatusChanged() {
-    if (_onAuthorizationStatus == null) {
-      _onAuthorizationStatus = _authorizationStatusChangedChannel
-          .receiveBroadcastStream()
-          .map((dynamic event) => AuthorizationStatus.parse(event));
-    }
+    _onAuthorizationStatus ??= _authorizationStatusChangedChannel
+        .receiveBroadcastStream()
+        .map((dynamic event) => AuthorizationStatus.parse(event));
     return _onAuthorizationStatus!;
   }
 

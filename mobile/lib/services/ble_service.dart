@@ -22,17 +22,31 @@ class BleService {
 
     bool beaconFound = false;
 
-    final stream =
-        flutterBeacon.ranging(regions).listen((RangingResult result) {
-      for (final Beacon beacon in result.beacons) {
-        if (beacon.rssi > AppConstants.minBeaconRssi) {
-          beaconFound = true;
+    try {
+      final stream =
+          flutterBeacon.ranging(regions).listen((RangingResult result) {
+        for (final Beacon beacon in result.beacons) {
+          if (beacon.rssi != 0 && beacon.rssi > AppConstants.minBeaconRssi) {
+            beaconFound = true;
+          }
         }
-      }
-    });
+      });
 
-    await Future<void>.delayed(Duration(seconds: durationSeconds));
-    await stream.cancel();
+      final stopWatch = Stopwatch()..start();
+      while (!beaconFound && stopWatch.elapsed.inSeconds < durationSeconds) {
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+      }
+
+      await stream.cancel();
+    } catch (_) {
+      throw const AttendanceException(VerificationError.beaconNotFound);
+    } finally {
+      try {
+        await flutterBeacon.close;
+      } catch (_) {
+        // Ignore native cleanup errors
+      }
+    }
 
     if (!beaconFound) {
       throw const AttendanceException(VerificationError.beaconNotFound);

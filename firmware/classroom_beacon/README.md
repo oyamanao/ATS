@@ -127,23 +127,25 @@ The default TX power (`ESP_PWR_LVL_N12`, −12 dBm) is a safe starting point. Af
 | Position | Expected RSSI | Pass Condition |
 |----------|--------------|----------------|
 | 1 m from beacon | −55 to −65 dBm | Beacon visible and strong |
-| Farthest desk in room | −75 to −85 dBm | Must be above −90 dBm |
-| Just outside door (hallway) | −85 to −95 dBm | Must be below −88 dBm |
-| 3 m down hallway | < −95 dBm or not visible | **Must not be detectable** |
+| Farthest desk in room | −60 to −70 dBm | Must be ≥ −70 dBm |
+| Just outside door (hallway) | −75 to −85 dBm | Must be < −75 dBm |
+| 3 m down hallway | < −85 dBm or not visible | **Must not be detectable** |
 
 ### Pass/Fail Criteria
 
-- ✅ **PASS**: The beacon is invisible or reads < −95 dBm from 3 m into the hallway.
-- ❌ **FAIL**: The beacon reads > −88 dBm from outside the doorway → reduce TX power.
+- ✅ **PASS**: In-room signal is ≥ −70 dBm and hallway signal is < −75 dBm (or undetectable).
+- ❌ **FAIL**: The beacon reads ≥ −70 dBm from outside the doorway → reduce TX power.
 
 ### Reducing TX Power (If Signal Bleeds Through)
 
 Edit the `TX_POWER` define and re-flash:
 
 ```cpp
-// Try each level in order until hallway RSSI drops below −88 dBm:
-#define TX_POWER  ESP_PWR_LVL_N15   // −15 dBm (next step down)
-#define TX_POWER  ESP_PWR_LVL_N21   // −21 dBm (maximum reduction)
+// Choose ONE power level based on room size and wall construction:
+// #define TX_POWER  ESP_PWR_LVL_N9    //  -9 dBm (stronger, large lecture halls)
+#define TX_POWER     ESP_PWR_LVL_N12   // -12 dBm (default, standard classroom)
+// #define TX_POWER  ESP_PWR_LVL_N15   // -15 dBm (reduced, thin drywall walls)
+// #define TX_POWER  ESP_PWR_LVL_N21   // -21 dBm (minimum power, compact lab rooms)
 ```
 
 Re-run the calibration procedure after each change.
@@ -152,13 +154,13 @@ Re-run the calibration procedure after each change.
 
 ## RSSI Threshold in the Flutter App
 
-The Flutter app uses the `CALIBRATED_RSSI_AT_1M` value and a **detection threshold** to decide whether the student is "in the room." The recommended threshold is:
+The Flutter app checks that the beacon's RSSI satisfies the in-room threshold:
 
 ```
-Detection Threshold: −88 dBm
+Detection Threshold: > -70 dBm
 ```
 
-Any beacon reading weaker than −88 dBm is treated as "too far away" and the attendance mark is rejected. Adjust this in `AppConstants.rssiThreshold` in the Flutter codebase.
+Any beacon reading weaker than −70 dBm is treated as outside the physical room, and attendance verification is rejected. Configure this via `AppConstants.minBeaconRssi` in `lib/config/constants.dart`.
 
 ---
 
@@ -171,12 +173,3 @@ Any beacon reading weaker than −88 dBm is treated as "too far away" and the at
 | Signal too strong in hallway | Default power too high | Reduce to `ESP_PWR_LVL_N15` or `ESP_PWR_LVL_N21` |
 | Signal too weak at far desk | Obstructions (metal furniture) | Reposition beacon; raise power one level |
 | UUID not detected by Flutter app | UUID mismatch | Verify UUID matches `AppConstants.targetBeaconUUID` exactly (case-insensitive) |
-
----
-
-## Replacing a Failed ESP32
-
-1. Flash the new ESP32 with the **same** `BEACON_UUID`, `BUILDING_ID`, and `ROOM_NUMBER`.
-2. Power off the failed unit.
-3. Power on the replacement — no app or backend changes are needed since the UUID is identical.
-4. Run the calibration procedure again to confirm signal levels.

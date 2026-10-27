@@ -9,8 +9,13 @@ const app = express();
 
 // ── Middleware ───────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10kb' })); // Prevent oversized payloads
+
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+  : true;
+
 app.use(cors({
-  origin: true, // Allow teacher projector web dashboard
+  origin: corsOrigin,
 }));
 
 // ── Routes ───────────────────────────────────────────────────────────────────

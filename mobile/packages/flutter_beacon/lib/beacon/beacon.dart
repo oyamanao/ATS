@@ -2,7 +2,7 @@
 //  Licensed under Apache License v2.0 that can be
 //  found in the LICENSE file.
 
-part of flutter_beacon;
+part of '../flutter_beacon.dart';
 
 /// Enum for defining proximity.
 enum Proximity { unknown, immediate, near, far }
@@ -47,8 +47,8 @@ class Beacon {
     this.txPower,
     required this.accuracy,
     Proximity? proximity,
-  })  : this.rssi = rssi ?? -1,
-        this._proximity = proximity;
+  })  : rssi = rssi ?? -1,
+        _proximity = proximity;
 
   /// Create beacon object from json.
   Beacon.fromJson(dynamic json)

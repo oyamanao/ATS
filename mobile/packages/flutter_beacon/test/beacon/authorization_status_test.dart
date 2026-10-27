@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('authorization initialization', () {
-    final authorizationStatus = AuthorizationStatus.init(
+    const authorizationStatus = AuthorizationStatus.init(
       'VALUE',
       isAndroid: true,
       isIOS: true,
@@ -14,12 +14,12 @@ void main() {
   });
 
   test('authorization must be equal', () {
-    final statusA = AuthorizationStatus.init(
+    const statusA = AuthorizationStatus.init(
       'VALUE',
       isAndroid: false,
       isIOS: true,
     );
-    final statusB = AuthorizationStatus.init(
+    const statusB = AuthorizationStatus.init(
       'VALUE',
       isAndroid: false,
       isIOS: true,

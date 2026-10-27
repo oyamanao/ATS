@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-main() {
+void main() {
   test('constructor test must be equal', () {
     final map = {
       'identifier': 'ID',

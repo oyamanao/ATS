@@ -20,12 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _attendanceService = AttendanceService();
   final _authService = AuthService();
 
-  StatusType _statusType = StatusType.idle;
-  String _statusMessage =
-      'Ready. Stand in your classroom and scan the screen QR code.';
-  bool _isProcessing = false;
-
-  List<VerificationStep> _steps = const [
+  static const List<VerificationStep> _initialSteps = [
     VerificationStep(
       label: 'Campus Boundary & Mock Check',
       description: 'Verifies GPS accuracy and flags simulated locations',
@@ -58,44 +53,27 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
+  StatusType _statusType = StatusType.idle;
+  String _statusMessage =
+      'Ready. Stand in your classroom and scan the screen QR code.';
+  bool _isProcessing = false;
+  late List<VerificationStep> _steps;
+
+  @override
+  void initState() {
+    super.initState();
+    _steps = List.of(_initialSteps);
+  }
+
   void _resetSteps() {
+    if (!mounted) return;
     setState(() {
-      _steps = const [
-        VerificationStep(
-          label: 'Campus Boundary & Mock Check',
-          description: 'Verifies GPS accuracy and flags simulated locations',
-          status: StepStatus.pending,
-        ),
-        VerificationStep(
-          label: 'Classroom Router BSSID Match',
-          description: 'Validates physical Wi-Fi hardware MAC address',
-          status: StepStatus.pending,
-        ),
-        VerificationStep(
-          label: 'ESP32 BLE Proximity Verification',
-          description: 'Confirms in-room Bluetooth RSSI > -70 dBm',
-          status: StepStatus.pending,
-        ),
-        VerificationStep(
-          label: 'Dynamic TOTP QR Ingestion',
-          description: 'Extracts rolling 10s token from live teacher display',
-          status: StepStatus.pending,
-        ),
-        VerificationStep(
-          label: 'Biometric Hardware Key Signature',
-          description: 'Signs token inside Secure Enclave using private key',
-          status: StepStatus.pending,
-        ),
-        VerificationStep(
-          label: 'Local Intranet API Confirmation',
-          description: 'Cryptographic signature & token idempotency check',
-          status: StepStatus.pending,
-        ),
-      ];
+      _steps = List.of(_initialSteps);
     });
   }
 
   void _updateStep(int index, StepStatus status) {
+    if (!mounted) return;
     setState(() {
       _steps = List.generate(_steps.length, (i) {
         if (i == index) {
@@ -113,20 +91,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _startAttendanceFlow() async {
     _resetSteps();
 
-    // 1. Open QR scanner first
-    String? scannedPayload;
-    await Navigator.push<void>(
+    // 1. Open QR scanner and await scanned code directly
+    final scannedPayload = await Navigator.push<String>(
       context,
       MaterialPageRoute(
-        builder: (_) => QRScanScreen(
-          onScanned: (code) async {
-            scannedPayload = code;
-          },
-        ),
+        builder: (_) => const QRScanScreen(),
       ),
     );
 
-    if (scannedPayload == null) {
+    if (!mounted) return;
+
+    if (scannedPayload == null || scannedPayload.isEmpty) {
       setState(() {
         _statusType = StatusType.idle;
         _statusMessage = 'QR code scan cancelled.';
@@ -156,49 +131,62 @@ class _HomeScreenState extends State<HomeScreen> {
       await _attendanceService.ble.verifyBeacon();
       _updateStep(2, StepStatus.success);
 
-      // Step 4: Scanned QR
+      // Step 4: Scanned QR code
       _updateStep(3, StepStatus.success);
 
       // Step 5: Biometric Signature
       _updateStep(4, StepStatus.active);
       final signature =
-          await _attendanceService.biometric.signPayload(scannedPayload!);
+          await _attendanceService.biometric.signPayload(scannedPayload);
       _updateStep(4, StepStatus.success);
 
       // Step 6: Server submission
       _updateStep(5, StepStatus.active);
-      await _attendanceService.submitPayload(scannedPayload!, signature);
+      await _attendanceService.submitPayload(scannedPayload, signature);
       _updateStep(5, StepStatus.success);
 
-      setState(() {
-        _statusType = StatusType.success;
-        _statusMessage = 'Attendance verified and recorded successfully!';
-      });
+      if (mounted) {
+        setState(() {
+          _statusType = StatusType.success;
+          _statusMessage = 'Attendance verified and recorded successfully!';
+        });
+      }
     } on AttendanceException catch (e) {
       final activeIdx = _steps.indexWhere((s) => s.status == StepStatus.active);
       if (activeIdx != -1) {
         _updateStep(activeIdx, StepStatus.failed);
       }
-      setState(() {
-        _statusType = StatusType.failure;
-        _statusMessage = e.toString();
-      });
+      if (mounted) {
+        setState(() {
+          _statusType = StatusType.failure;
+          _statusMessage = e.toString();
+        });
+      }
     } catch (e) {
-      setState(() {
-        _statusType = StatusType.failure;
-        _statusMessage =
-            const AttendanceException(VerificationError.unknown).toString();
-      });
+      final activeIdx = _steps.indexWhere((s) => s.status == StepStatus.active);
+      if (activeIdx != -1) {
+        _updateStep(activeIdx, StepStatus.failed);
+      }
+      if (mounted) {
+        setState(() {
+          _statusType = StatusType.failure;
+          _statusMessage =
+              const AttendanceException(VerificationError.unknown).toString();
+        });
+      }
     } finally {
-      setState(() => _isProcessing = false);
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 
   Future<void> _signOut() async {
     await _authService.signOut();
     if (mounted) {
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
       );
     }
   }

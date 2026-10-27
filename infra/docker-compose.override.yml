@@ -5,16 +5,15 @@
 #
 # See: https://supabase.com/docs/guides/self-hosting/docker
 
-version: '3.8'
 services:
   auth:
     environment:
       # Google OAuth App credentials
       # Create at: https://console.cloud.google.com/apis/credentials
       GOTRUE_EXTERNAL_GOOGLE_ENABLED: "true"
-      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
-      GOTRUE_EXTERNAL_GOOGLE_SECRET: "YOUR_GOOGLE_CLIENT_SECRET"
-      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: "http://192.168.10.50:8000/auth/v1/callback"
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID:-YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOTRUE_EXTERNAL_GOOGLE_SECRET:-YOUR_GOOGLE_CLIENT_SECRET}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI:-http://192.168.10.50:8000/auth/v1/callback}
       
       # Allow the Flutter app's custom scheme as a valid post-auth redirect
       GOTRUE_URI_ALLOW_LIST: "attendanceapp://login-callback"

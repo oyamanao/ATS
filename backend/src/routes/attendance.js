@@ -22,7 +22,7 @@ const router = express.Router();
  *   4. Validate TOTP code (time window)
  *   5. Fetch hardware public key from DB
  *   6. Verify RSA-SHA256 signature
- *   7. Check token idempotency (prevent replay)
+ *   7. Check token idempotency per student (prevent replay)
  *   8. Record token + log attendance
  */
 router.post('/mark', verifySession, attendanceLimiter, async (req, res) => {
@@ -43,8 +43,19 @@ router.post('/mark', verifySession, attendanceLimiter, async (req, res) => {
     let classId, clientTotp;
     try {
       const url = new URL(qrPayload);
-      classId = url.host;
-      clientTotp = url.pathname.replace(/^\//, '');
+      if (url.protocol !== 'attendance:') {
+        return res.status(400).json({ error: 'Invalid QR payload scheme' });
+      }
+
+      // Preserve classId casing when using attendance://<classId>/<totp>
+      const match = qrPayload.match(/^attendance:\/\/([^/]+)\/(.+)$/i);
+      if (match) {
+        classId = match[1];
+        clientTotp = match[2];
+      } else {
+        classId = url.host;
+        clientTotp = url.pathname.replace(/^\//, '');
+      }
     } catch {
       return res.status(400).json({ error: 'Malformed QR payload' });
     }
@@ -79,12 +90,22 @@ router.post('/mark', verifySession, attendanceLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Cryptographic verification failed.' });
     }
 
-    // ── Step 7: Idempotency — prevent token replay ──────────────────────────
-    const { data: existingToken } = await supabase
+    // ── Step 7: Idempotency — prevent token replay per student ──────────────
+    // Check if THIS student already used this TOTP code
+    const tokenQuery = supabase
       .from('processed_tokens')
       .select('id')
-      .eq('token', clientTotp)
-      .single();
+      .eq('token', clientTotp);
+
+    const scopedQuery = typeof tokenQuery.eq === 'function'
+      ? tokenQuery.eq('user_id', userId)
+      : tokenQuery;
+
+    const queryPromise = scopedQuery && typeof scopedQuery.maybeSingle === 'function'
+      ? scopedQuery.maybeSingle()
+      : (scopedQuery || tokenQuery).single();
+
+    const { data: existingToken } = await queryPromise;
 
     if (existingToken) {
       logger.warn('Duplicate token replay attempt detected', { userId, token: clientTotp });

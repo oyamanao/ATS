@@ -1,0 +1,35 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Flutter: Build Android Debug APK",
+            "type": "shell",
+            "command": "flutter build apk --debug",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Flutter: Build Android Release APK",
+            "type": "shell",
+            "command": "flutter build apk --release",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Flutter: Build Android App Bundle (AAB)",
+            "type": "shell",
+            "command": "flutter build appbundle",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Flutter: Launch Android Emulator",
+            "type": "shell",
+            "command": "flutter emulators --launch Medium_Phone_API_37.0",
+            "problemMatcher": []
+        }
+    ]
+}

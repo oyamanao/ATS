@@ -53,6 +53,19 @@ CREATE TABLE IF NOT EXISTS auth.users (
     CONSTRAINT users_pkey PRIMARY KEY (id)
 );
 
+-- Ensure standard Supabase roles exist for PostgREST & Auth
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'anon') THEN
+        CREATE ROLE anon NOLOGIN;
+    END IF;
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'authenticated') THEN
+        CREATE ROLE authenticated NOLOGIN;
+    END IF;
+    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'service_role') THEN
+        CREATE ROLE service_role NOLOGIN;
+    END IF;
+END $$;
+
 -- ---------------------------------------------------------------------------
 -- Table: student_devices
 -- Maps each student account to their hardware-bound public key.
@@ -63,19 +76,21 @@ CREATE TABLE IF NOT EXISTS public.student_devices (
     user_id    UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
     email      TEXT NOT NULL,
     public_key TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now()),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now())
 );
 
 -- ---------------------------------------------------------------------------
 -- Table: processed_tokens
--- Tracks each consumed TOTP token to prevent replay attacks.
+-- Tracks each consumed TOTP token per student to prevent replay attacks.
 -- Tokens older than 5 minutes are purged automatically.
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.processed_tokens (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    token      TEXT NOT NULL UNIQUE,
-    user_id    UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now())
+    token      TEXT NOT NULL,
+    user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now()),
+    CONSTRAINT unique_user_processed_token UNIQUE (token, user_id)
 );
 
 -- ---------------------------------------------------------------------------
@@ -89,6 +104,13 @@ CREATE TABLE IF NOT EXISTS public.attendance_logs (
     email     TEXT NOT NULL,
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now())
 );
+
+-- Grant appropriate permissions to roles
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT SELECT, INSERT, UPDATE ON public.student_devices TO authenticated;
+GRANT SELECT ON public.attendance_logs TO authenticated;
 
 -- =============================================================================
 -- Row Level Security (RLS)
@@ -108,11 +130,17 @@ $$ LANGUAGE sql STABLE;
 
 DO $$
 BEGIN
-    EXECUTE 'CREATE POLICY "students_view_own_device" ON public.student_devices FOR SELECT USING (auth.uid() = user_id);';
-    EXECUTE 'CREATE POLICY "students_view_own_attendance" ON public.attendance_logs FOR SELECT USING (auth.uid() = user_id);';
-    EXECUTE 'CREATE POLICY "allow_all_service_role_devices" ON public.student_devices FOR ALL USING (true);';
-    EXECUTE 'CREATE POLICY "allow_all_service_role_tokens" ON public.processed_tokens FOR ALL USING (true);';
-    EXECUTE 'CREATE POLICY "allow_all_service_role_logs" ON public.attendance_logs FOR ALL USING (true);';
+    -- Students can view and register/update their own hardware device key
+    EXECUTE 'CREATE POLICY "students_view_own_device" ON public.student_devices FOR SELECT TO authenticated USING (auth.uid() = user_id);';
+    EXECUTE 'CREATE POLICY "students_manage_own_device" ON public.student_devices FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);';
+
+    -- Students can view their own verified attendance logs
+    EXECUTE 'CREATE POLICY "students_view_own_attendance" ON public.attendance_logs FOR SELECT TO authenticated USING (auth.uid() = user_id);';
+
+    -- Backend service role has full access to all tables
+    EXECUTE 'CREATE POLICY "allow_service_role_devices" ON public.student_devices FOR ALL TO service_role USING (true) WITH CHECK (true);';
+    EXECUTE 'CREATE POLICY "allow_service_role_tokens" ON public.processed_tokens FOR ALL TO service_role USING (true) WITH CHECK (true);';
+    EXECUTE 'CREATE POLICY "allow_service_role_logs" ON public.attendance_logs FOR ALL TO service_role USING (true) WITH CHECK (true);';
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
@@ -143,11 +171,23 @@ CREATE TRIGGER trigger_cleanup_tokens
 -- =============================================================================
 -- Indexes for query performance
 -- =============================================================================
+CREATE INDEX IF NOT EXISTS idx_student_devices_user_id
+    ON public.student_devices(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_student_devices_email
+    ON public.student_devices(email);
+
 CREATE INDEX IF NOT EXISTS idx_attendance_logs_user_id
     ON public.attendance_logs(user_id);
 
 CREATE INDEX IF NOT EXISTS idx_attendance_logs_class_id
     ON public.attendance_logs(class_id);
+
+CREATE INDEX IF NOT EXISTS idx_attendance_logs_user_class_time
+    ON public.attendance_logs(user_id, class_id, timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_processed_tokens_user_token
+    ON public.processed_tokens(user_id, token);
 
 CREATE INDEX IF NOT EXISTS idx_processed_tokens_created_at
     ON public.processed_tokens(created_at);

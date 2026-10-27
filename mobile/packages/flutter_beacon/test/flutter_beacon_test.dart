@@ -89,23 +89,23 @@ void main() {
           return Region.fromJson(arg);
         }).toList();
 
-        ServicesBinding.instance!.defaultBinaryMessenger.handlePlatformMessage(
+        ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
           rangingChannel.name,
           const StandardMethodCodec().encodeSuccessEnvelope({
             'region': regions.first.toJson,
             'beacons': [
               {
                 'proximityUUID': regions.first.proximityUUID,
-                'major': regions.first.major == null ? 1 : regions.first.major,
-                'minor': regions.first.minor == null ? 1 : regions.first.minor,
+                'major': regions.first.major ?? 1,
+                'minor': regions.first.minor ?? 1,
                 'rssi': -59,
                 'accuracy': 1.2,
                 'proximity': 'near',
               },
               {
                 'proximityUUID': regions.first.proximityUUID,
-                'major': regions.first.major == null ? 2 : regions.first.major,
-                'minor': regions.first.minor == null ? 2 : regions.first.minor,
+                'major': regions.first.major ?? 2,
+                'minor': regions.first.minor ?? 2,
                 'rssi': -58,
                 'accuracy': 0.8,
                 'proximity': 'immediate',
@@ -132,7 +132,7 @@ void main() {
           return Region.fromJson(arg);
         }).toList();
 
-        regions.forEach((region) {
+        for (final region in regions) {
           dynamic result;
           if (region.identifier == 'onEnter') {
             result = {
@@ -153,14 +153,14 @@ void main() {
           }
 
           if (result != null) {
-            ServicesBinding.instance!.defaultBinaryMessenger
+            ServicesBinding.instance.defaultBinaryMessenger
                 .handlePlatformMessage(
               monitoringChannel.name,
               const StandardMethodCodec().encodeSuccessEnvelope(result),
               (ByteData? data) {},
             );
           }
-        });
+        }
         return;
       }
 
@@ -169,7 +169,7 @@ void main() {
     });
 
     bluetoothChannel.setMockMethodCallHandler((MethodCall methodCall) async {
-      ServicesBinding.instance!.defaultBinaryMessenger.handlePlatformMessage(
+      ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
         bluetoothChannel.name,
         const StandardMethodCodec().encodeSuccessEnvelope('STATE_ON'),
         (ByteData? data) {},
@@ -178,7 +178,7 @@ void main() {
 
     authorizationChannel
         .setMockMethodCallHandler((MethodCall methodCall) async {
-      ServicesBinding.instance!.defaultBinaryMessenger.handlePlatformMessage(
+      ServicesBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
         authorizationChannel.name,
         const StandardMethodCodec().encodeSuccessEnvelope('ALLOWED'),
         (ByteData? data) {},
@@ -347,7 +347,7 @@ void main() {
     });
 
     test('didExitRegion', () async {
-      final result = await stream.elementAt(2);
+      final result = await stream.elementAt(1);
 
       expect(result.region, isNotNull);
       expect(result.region.identifier, 'onExit');
@@ -360,7 +360,7 @@ void main() {
     });
 
     test('didDetermineStateForRegion', () async {
-      final result = await stream.elementAt(3);
+      final result = await stream.elementAt(2);
 
       expect(result.region, isNotNull);
       expect(result.region.identifier, 'onDetermine');

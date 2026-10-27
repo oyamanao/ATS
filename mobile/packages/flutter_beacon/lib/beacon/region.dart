@@ -2,7 +2,7 @@
 //  Licensed under Apache License v2.0 that can be
 //  found in the LICENSE file.
 
-part of flutter_beacon;
+part of '../flutter_beacon.dart';
 
 /// Class for managing for ranging and monitoring region scanning.
 class Region {

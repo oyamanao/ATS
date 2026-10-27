@@ -1,7 +1,7 @@
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-main() {
+void main() {
   test('MonitoringEventType must equalTo "didEnterRegion', () {
     final map = {
       'region': {

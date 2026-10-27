@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('bluetooth state initialization', () {
-    final bluetoothState = BluetoothState.init(
+    const bluetoothState = BluetoothState.init(
       'VALUE',
       isAndroid: true,
       isIOS: true,
@@ -14,12 +14,12 @@ void main() {
   });
 
   test('bluetooth state must be equal', () {
-    final stateA = BluetoothState.init(
+    const stateA = BluetoothState.init(
       'VALUE',
       isAndroid: true,
       isIOS: false,
     );
-    final stateB = BluetoothState.init(
+    const stateB = BluetoothState.init(
       'VALUE',
       isAndroid: true,
       isIOS: false,

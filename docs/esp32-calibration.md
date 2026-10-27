@@ -43,10 +43,10 @@ In `classroom_beacon.ino`, power is controlled via `NimBLEDevice::setPower(...)`
 
 | Power Level Macro | Approximate TX Power | Recommended Use Case |
 |---|---|---|
-| `ESP_PWR_LVL_N12` | **-12 dBm** | Standard classroom (10m x 8m, brick/drywall) — **Default** |
-| `ESP_PWR_LVL_N21` | **-21 dBm** | Small seminar room or thin glass partition walls |
+| `ESP_PWR_LVL_N21` | **-21 dBm** | Small seminar room or thin glass partition walls (minimum power) |
 | `ESP_PWR_LVL_N15` | **-15 dBm** | Medium classroom with signal leaking into adjacent room |
-| `ESP_PWR_LVL_N9`  | **-9 dBm**  | Large lecture hall (20m+ depth) |
+| `ESP_PWR_LVL_N12` | **-12 dBm** | Standard classroom (10m x 8m, brick/drywall) — **Default** |
+| `ESP_PWR_LVL_N9`  | **-9 dBm**  | Large lecture hall (20m+ depth, maximum power) |
 
 ---
 
@@ -55,8 +55,7 @@ In `classroom_beacon.ino`, power is controlled via `NimBLEDevice::setPower(...)`
 ### Phase 1: In-Room Verification
 1. Mount the ESP32 near the teacher's podium or whiteboard at roughly 2 meters height.
 2. Power on the ESP32.
-3. Open the BLE scanner app on the test phone and filter by your classroom UUID:
-   `B9407F30-F5F8-466E-AFF9-25556B57FE6D`
+3. Open the BLE scanner app on the test phone and filter by your classroom's configured UUID (e.g., `B9407F30-F5F8-466E-AFF9-25556B57FE6D` or your programmed UUID).
 4. Walk to the **furthest corner desk** in the classroom:
    - Observe RSSI for 30 seconds.
    - **Target:** Median RSSI must be **between -60 dBm and -68 dBm**.
@@ -70,7 +69,7 @@ In `classroom_beacon.ino`, power is controlled via `NimBLEDevice::setPower(...)`
    - **Failure:** If RSSI reads $\ge -70\text{ dBm}$, signal is penetrating the door/walls.
 4. **Correction for signal bleed:**
    - Open `classroom_beacon.ino`
-   - Change `TX_POWER` to `ESP_PWR_LVL_N21` (-21 dBm)
+   - Change `TX_POWER` to `ESP_PWR_LVL_N15` or `ESP_PWR_LVL_N21`
    - Re-flash the ESP32 and repeat Phase 1 & 2.
 
 ---

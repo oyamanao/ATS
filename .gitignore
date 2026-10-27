@@ -11,7 +11,7 @@ mobile/.dart_tool/
 mobile/.flutter-plugins
 mobile/.flutter-plugins-dependencies
 mobile/.pub-cache/
-mobile/build/
+**/build/
 mobile/android/.gradle/
 mobile/android/local.properties
 mobile/android/key.properties

@@ -1,7 +1,12 @@
 const { TOTP } = require('otpauth');
 
-const SHARED_CLASS_SECRET = process.env.SHARED_CLASS_SECRET || 'KVKXG2LEMYFA====';
-const TOTP_INTERVAL = parseInt(process.env.TOTP_INTERVAL || '10', 10);
+function getSecret() {
+  return (process.env.SHARED_CLASS_SECRET || 'KVKXG2LEMYFA====').trim();
+}
+
+function getInterval() {
+  return parseInt(process.env.TOTP_INTERVAL || '10', 10);
+}
 
 /**
  * Validates a client-supplied TOTP code.
@@ -17,10 +22,10 @@ function validateTotp(clientCode) {
 
   try {
     const totp = new TOTP({
-      secret: SHARED_CLASS_SECRET,
+      secret: getSecret(),
       algorithm: 'SHA256',
       digits: 6,
-      period: TOTP_INTERVAL,
+      period: getInterval(),
     });
 
     // delta: number of periods the code may be off. 1 = accept current + 1 previous period.
@@ -37,10 +42,10 @@ function validateTotp(clientCode) {
  */
 function generateCurrentTotp() {
   const totp = new TOTP({
-    secret: SHARED_CLASS_SECRET,
+    secret: getSecret(),
     algorithm: 'SHA256',
     digits: 6,
-    period: TOTP_INTERVAL,
+    period: getInterval(),
   });
   return totp.generate();
 }

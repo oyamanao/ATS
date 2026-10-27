@@ -29,6 +29,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
     try {
       final publicKey = await _biometricService.createHardwareKey();
+      if (!mounted) return;
 
       setState(() {
         _statusMessage =
@@ -36,6 +37,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       });
 
       await _authService.registerPublicKey(publicKey);
+      if (!mounted) return;
 
       setState(() {
         _statusType = StatusType.success;
@@ -44,6 +46,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         _isSuccess = true;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _statusType = StatusType.failure;
         _statusMessage =

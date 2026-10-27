@@ -51,9 +51,11 @@ class AttendanceService {
   /// Submits the cryptographically signed payload to the university intranet API.
   Future<void> submitPayload(String qrPayload, String signature) async {
     final session = auth.currentSession;
-    if (session == null) {
+    if (session == null && AppConstants.isSupabaseConfigured) {
       throw const AttendanceException(VerificationError.serverRejected);
     }
+
+    final token = session?.accessToken ?? 'demo-token';
 
     final payload = AttendancePayload(
       qrPayload: qrPayload,
@@ -67,7 +69,7 @@ class AttendanceService {
             Uri.parse('${AppConstants.localBackendUrl}/api/attendance/mark'),
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ${session.accessToken}',
+              'Authorization': 'Bearer $token',
             },
             body: jsonEncode(payload.toJson()),
           )

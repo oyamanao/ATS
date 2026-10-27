@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class QRScanScreen extends StatefulWidget {
-  final Future<void> Function(String) onScanned;
+  final Future<void> Function(String)? onScanned;
 
-  const QRScanScreen({super.key, required this.onScanned});
+  const QRScanScreen({super.key, this.onScanned});
 
   @override
   State<QRScanScreen> createState() => _QRScanScreenState();
@@ -30,9 +30,13 @@ class _QRScanScreenState extends State<QRScanScreen> {
     for (final barcode in barcodes) {
       final code = barcode.rawValue;
       if (code != null && code.isNotEmpty) {
+        if (!mounted) return;
         setState(() => _hasDetected = true);
-        Navigator.pop(context);
-        await widget.onScanned(code);
+        await _controller.stop();
+        if (mounted) {
+          Navigator.pop(context, code);
+          await widget.onScanned?.call(code);
+        }
         break;
       }
     }

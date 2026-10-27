@@ -3,12 +3,27 @@ const { generateCurrentTotp } = require('../services/totpService');
 
 const router = express.Router();
 
+function sanitizeClassId(raw) {
+  if (!raw || typeof raw !== 'string') return 'CS101';
+  const cleaned = raw.trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 32);
+  return cleaned || 'CS101';
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 /**
  * GET /api/teacher/token
  * Returns current rolling TOTP code and URI payload for the teacher projector.
  */
 router.get('/token', (req, res) => {
-  const classId = req.query.classId || 'CS101';
+  const classId = sanitizeClassId(req.query.classId);
   const totpCode = generateCurrentTotp();
   const uri = `attendance://${classId}/${totpCode}`;
   const interval = parseInt(process.env.TOTP_INTERVAL || '10', 10);
@@ -27,17 +42,21 @@ router.get('/token', (req, res) => {
 });
 
 /**
- * GET /teacher
+ * GET /teacher/display
  * Serves a self-contained responsive classroom projection screen with dynamic QR code.
  */
 router.get('/display', (req, res) => {
-  const classId = req.query.classId || 'CS101';
+  const classId = sanitizeClassId(req.query.classId);
+  const escapedClassId = escapeHtml(classId);
+  const interval = parseInt(process.env.TOTP_INTERVAL || '10', 10);
+  const intervalMs = interval * 1000;
+
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Classroom Display - ${classId} Attendance</title>
+  <title>Classroom Display - ${escapedClassId} Attendance</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -158,7 +177,7 @@ router.get('/display', (req, res) => {
 <body>
   <div class="header">
     <div class="badge">IIIT Dharwad • Live Attendance Gate</div>
-    <h1>Classroom ${classId}</h1>
+    <h1>Classroom ${escapedClassId}</h1>
     <p class="subtitle">Scan via official IIITDWD Attendance mobile app inside the classroom</p>
   </div>
 
@@ -172,14 +191,15 @@ router.get('/display', (req, res) => {
     </div>
     <div class="status-pill">
       <div class="pulse-dot"></div>
-      <span id="countdownText">Refreshing in 10s</span>
+      <span id="countdownText">Refreshing in ${interval}s</span>
     </div>
   </div>
 
   <p class="footer-note">Rolling 10-second cryptographic TOTP • Screenshots will fail verification</p>
 
   <script>
-    const classId = "${classId}";
+    const classId = ${JSON.stringify(classId)};
+    const intervalMs = ${intervalMs};
     let qr = null;
     let currentToken = null;
 
@@ -208,7 +228,6 @@ router.get('/display', (req, res) => {
 
     function updateTick() {
       const now = Date.now();
-      const intervalMs = 10000;
       const progress = (now % intervalMs) / intervalMs;
       const remainingSec = Math.ceil((intervalMs - (now % intervalMs)) / 1000);
       document.getElementById('timerBar').style.width = ((1 - progress) * 100) + '%';

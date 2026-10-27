@@ -79,6 +79,7 @@ describe('POST /api/attendance/mark Comprehensive Tests', () => {
       select: () => ({
         eq: () => ({
           single: async () => ({ data: null, error: new Error('Device not found') }),
+          maybeSingle: async () => ({ data: null, error: new Error('Device not found') }),
         }),
       }),
     }));
@@ -101,6 +102,7 @@ describe('POST /api/attendance/mark Comprehensive Tests', () => {
       select: () => ({
         eq: () => ({
           single: async () => ({ data: { public_key: publicKeyPem }, error: null }),
+          maybeSingle: async () => ({ data: { public_key: publicKeyPem }, error: null }),
         }),
       }),
     }));
@@ -119,25 +121,27 @@ describe('POST /api/attendance/mark Comprehensive Tests', () => {
     const qrPayload = `attendance://CS101/${currentTotp}`;
     const sig = signPayload(qrPayload);
 
-    // Mock student_devices
+    // Mock student_devices and processed_tokens
     const fromMock = jest.spyOn(supabase, 'from');
     fromMock.mockImplementation((table) => {
       if (table === 'student_devices') {
+        const queryBuilder = {
+          eq: () => queryBuilder,
+          single: async () => ({ data: { public_key: publicKeyPem }, error: null }),
+          maybeSingle: async () => ({ data: { public_key: publicKeyPem }, error: null }),
+        };
         return {
-          select: () => ({
-            eq: () => ({
-              single: async () => ({ data: { public_key: publicKeyPem }, error: null }),
-            }),
-          }),
+          select: () => queryBuilder,
         };
       }
       if (table === 'processed_tokens') {
+        const queryBuilder = {
+          eq: () => queryBuilder,
+          single: async () => ({ data: { id: 'token-uuid-exists' }, error: null }),
+          maybeSingle: async () => ({ data: { id: 'token-uuid-exists' }, error: null }),
+        };
         return {
-          select: () => ({
-            eq: () => ({
-              single: async () => ({ data: { id: 'token-uuid-exists' }, error: null }),
-            }),
-          }),
+          select: () => queryBuilder,
         };
       }
       return {};
@@ -160,21 +164,23 @@ describe('POST /api/attendance/mark Comprehensive Tests', () => {
     const fromMock = jest.spyOn(supabase, 'from');
     fromMock.mockImplementation((table) => {
       if (table === 'student_devices') {
+        const queryBuilder = {
+          eq: () => queryBuilder,
+          single: async () => ({ data: { public_key: publicKeyPem }, error: null }),
+          maybeSingle: async () => ({ data: { public_key: publicKeyPem }, error: null }),
+        };
         return {
-          select: () => ({
-            eq: () => ({
-              single: async () => ({ data: { public_key: publicKeyPem }, error: null }),
-            }),
-          }),
+          select: () => queryBuilder,
         };
       }
       if (table === 'processed_tokens') {
+        const queryBuilder = {
+          eq: () => queryBuilder,
+          single: async () => ({ data: null, error: null }),
+          maybeSingle: async () => ({ data: null, error: null }),
+        };
         return {
-          select: () => ({
-            eq: () => ({
-              single: async () => ({ data: null, error: null }), // Not used yet
-            }),
-          }),
+          select: () => queryBuilder,
           insert: async () => ({ error: null }),
         };
       }

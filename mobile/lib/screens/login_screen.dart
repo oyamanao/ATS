@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../config/constants.dart';
 import '../services/auth_service.dart';
 import 'home_screen.dart';
 
@@ -19,15 +20,35 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Listen for OAuth redirect return
-    _authSubscription =
-        Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      if (data.session != null && mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
-    });
+    // Listen for OAuth redirect return when Supabase is configured
+    if (AppConstants.isSupabaseConfigured) {
+      _authSubscription =
+          Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+        final session = data.session;
+        if (session != null && mounted) {
+          final email = session.user.email ?? '';
+          if (!email.toLowerCase().endsWith(AppConstants.allowedEmailDomain)) {
+            _auth.signOut();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: const Color(0xFFDC2626),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                content: const Text(
+                  'Access denied: Only @iiitdwd.ac.in accounts are permitted.',
+                ),
+              ),
+            );
+            return;
+          }
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+      });
+    }
   }
 
   @override
@@ -39,6 +60,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signIn() async {
     setState(() => _isLoading = true);
     try {
+      if (!AppConstants.isSupabaseConfigured) {
+        // In local demo mode without remote Supabase, navigate directly to HomeScreen
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+        return;
+      }
       await _auth.signInWithGoogle();
     } catch (e) {
       if (mounted) {
