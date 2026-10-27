@@ -17,7 +17,8 @@ void main() async {
       ),
     );
   } else {
-    debugPrint('Supabase is not configured; starting in local demo mode without remote auth.');
+    debugPrint(
+        'Supabase is not configured; starting in local demo mode without remote auth.');
   }
 
   runApp(const AttendanceApp());

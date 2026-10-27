@@ -120,8 +120,7 @@ void main() {
       }),
     ];
     expect(Beacon.beaconArrayToJson(beacons) is List<dynamic>, isTrue);
-    expect(
-        Beacon.beaconFromArray(Beacon.beaconArrayToJson(beacons)).length,
+    expect(Beacon.beaconFromArray(Beacon.beaconArrayToJson(beacons)).length,
         equals(2));
   });
 

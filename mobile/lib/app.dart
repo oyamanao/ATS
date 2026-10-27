@@ -9,8 +9,8 @@ class AttendanceApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool hasSupabaseSession =
-        AppConstants.isSupabaseConfigured && Supabase.instance.client.auth.currentSession != null;
+    final bool hasSupabaseSession = AppConstants.isSupabaseConfigured &&
+        Supabase.instance.client.auth.currentSession != null;
 
     return MaterialApp(
       title: 'Anti-Cheat Indoor Attendance',
