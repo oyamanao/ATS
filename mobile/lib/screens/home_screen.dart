@@ -251,11 +251,29 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            user?.email ?? 'student@iiitdwd.ac.in',
+                            _authService.userDisplayName,
                             style: const TextStyle(
                               fontWeight: FontWeight.w700,
-                              fontSize: 14,
+                              fontSize: 15,
                               color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          if (_authService.userRollNumber != null) ...[
+                            const SizedBox(height: 1),
+                            Text(
+                              'Roll No: ${_authService.userRollNumber}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                          Text(
+                            user?.email ?? 'student@iiitdwd.ac.in',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
                             ),
                           ),
                           const SizedBox(height: 2),

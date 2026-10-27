@@ -67,6 +67,20 @@ DO $$ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
+-- Table: profiles
+-- Maps student credentials to institutional profiles (name, roll number, role).
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email       TEXT NOT NULL,
+    full_name   TEXT,
+    roll_number TEXT,
+    role        TEXT NOT NULL DEFAULT 'student',
+    created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now()),
+    updated_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now())
+);
+
+-- ---------------------------------------------------------------------------
 -- Table: student_devices
 -- Maps each student account to their hardware-bound public key.
 -- The private key NEVER leaves the student's device hardware security chip.
@@ -109,12 +123,14 @@ CREATE TABLE IF NOT EXISTS public.attendance_logs (
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT SELECT, INSERT, UPDATE ON public.profiles TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.student_devices TO authenticated;
 GRANT SELECT ON public.attendance_logs TO authenticated;
 
 -- =============================================================================
 -- Row Level Security (RLS)
 -- =============================================================================
+ALTER TABLE public.profiles           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.student_devices    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.processed_tokens   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attendance_logs    ENABLE ROW LEVEL SECURITY;
@@ -130,6 +146,10 @@ $$ LANGUAGE sql STABLE;
 
 DO $$
 BEGIN
+    -- Profiles: authenticated users can read profiles and manage their own
+    EXECUTE 'CREATE POLICY "students_view_profiles" ON public.profiles FOR SELECT TO authenticated USING (true);';
+    EXECUTE 'CREATE POLICY "students_manage_own_profile" ON public.profiles FOR ALL TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);';
+
     -- Students can view and register/update their own hardware device key
     EXECUTE 'CREATE POLICY "students_view_own_device" ON public.student_devices FOR SELECT TO authenticated USING (auth.uid() = user_id);';
     EXECUTE 'CREATE POLICY "students_manage_own_device" ON public.student_devices FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);';
@@ -138,12 +158,41 @@ BEGIN
     EXECUTE 'CREATE POLICY "students_view_own_attendance" ON public.attendance_logs FOR SELECT TO authenticated USING (auth.uid() = user_id);';
 
     -- Backend service role has full access to all tables
+    EXECUTE 'CREATE POLICY "allow_service_role_profiles" ON public.profiles FOR ALL TO service_role USING (true) WITH CHECK (true);';
     EXECUTE 'CREATE POLICY "allow_service_role_devices" ON public.student_devices FOR ALL TO service_role USING (true) WITH CHECK (true);';
     EXECUTE 'CREATE POLICY "allow_service_role_tokens" ON public.processed_tokens FOR ALL TO service_role USING (true) WITH CHECK (true);';
     EXECUTE 'CREATE POLICY "allow_service_role_logs" ON public.attendance_logs FOR ALL TO service_role USING (true) WITH CHECK (true);';
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
+
+-- =============================================================================
+-- Trigger: Auto-populate Profile on Auth Signup
+-- =============================================================================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.profiles (id, email, full_name, roll_number)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+        COALESCE(NEW.raw_user_meta_data->>'roll_number', '')
+    )
+    ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        full_name = COALESCE(NULLIF(EXCLUDED.full_name, ''), public.profiles.full_name),
+        roll_number = COALESCE(NULLIF(EXCLUDED.roll_number, ''), public.profiles.roll_number),
+        updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT OR UPDATE ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_new_user();
 
 -- =============================================================================
 -- Automated Token Cleanup
@@ -171,6 +220,12 @@ CREATE TRIGGER trigger_cleanup_tokens
 -- =============================================================================
 -- Indexes for query performance
 -- =============================================================================
+CREATE INDEX IF NOT EXISTS idx_profiles_email
+    ON public.profiles(email);
+
+CREATE INDEX IF NOT EXISTS idx_profiles_roll_number
+    ON public.profiles(roll_number);
+
 CREATE INDEX IF NOT EXISTS idx_student_devices_user_id
     ON public.student_devices(user_id);
 
