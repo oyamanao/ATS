@@ -1,17 +1,17 @@
 /// Central configuration — update these values for your deployment.
 /// Runtime overrides can be passed via dart-define, for example:
-/// flutter run --dart-define=ATS_BACKEND_URL=http://192.168.10.50:3000
+/// flutter run --dart-define=ATS_BACKEND_URL=http://10.0.5.32:3000
 class AppConstants {
   AppConstants._();
 
   // ─── Intranet Server ──────────────────────────────────────────────────────
   static const String localBackendUrl = String.fromEnvironment(
     'ATS_BACKEND_URL',
-    defaultValue: 'http://192.168.10.50:3000',
+    defaultValue: 'http://10.0.5.32:3000',
   );
   static const String supabaseLocalUrl = String.fromEnvironment(
     'ATS_SUPABASE_URL',
-    defaultValue: 'http://192.168.10.50:8000',
+    defaultValue: 'http://10.0.5.32:8000',
   );
   static const String supabaseAnonKey = String.fromEnvironment(
     'ATS_SUPABASE_ANON_KEY',
