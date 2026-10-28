@@ -2,6 +2,15 @@ const request = require('supertest');
 const app = require('../server');
 
 describe('API Route Tests', () => {
+  describe('Security Headers', () => {
+    it('should include nosniff and frame options and omit x-powered-by', async () => {
+      const res = await request(app).get('/health');
+      expect(res.headers['x-content-type-options']).toBe('nosniff');
+      expect(res.headers['x-frame-options']).toBe('SAMEORIGIN');
+      expect(res.headers['x-powered-by']).toBeUndefined();
+    });
+  });
+
   describe('GET /health', () => {
     it('should return 200 with status ok', async () => {
       const res = await request(app).get('/health');
@@ -41,12 +50,23 @@ describe('API Route Tests', () => {
     });
 
     it('should reject request when body is missing required fields', async () => {
-      // Mock session verification by bypassing or with fake header
       const res = await request(app)
         .post('/api/attendance/mark')
         .set('Authorization', 'Bearer invalid_token')
         .send({});
       expect([400, 401]).toContain(res.status);
+    });
+  });
+
+  describe('Error Handling Middleware', () => {
+    it('should return 400 when body parser encounters malformed JSON', async () => {
+      const res = await request(app)
+        .post('/api/attendance/mark')
+        .set('Content-Type', 'application/json')
+        .send('{"brokenJson: 123');
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('Invalid JSON payload');
     });
   });
 

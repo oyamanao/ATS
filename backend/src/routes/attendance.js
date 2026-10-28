@@ -34,21 +34,29 @@ router.post('/mark', verifySession, attendanceLimiter, async (req, res) => {
   const userId = req.user.id;
   const userEmail = req.user.email;
 
-  if (!qrPayload || !signature) {
+  if (
+    !qrPayload ||
+    !signature ||
+    typeof qrPayload !== 'string' ||
+    typeof signature !== 'string'
+  ) {
     return res.status(400).json({ error: 'Missing qrPayload or signature in request body' });
   }
+
+  const cleanQrPayload = qrPayload.trim();
+  const cleanSignature = signature.trim();
 
   try {
     // ── Step 3: Parse QR payload ────────────────────────────────────────────
     let classId, clientTotp;
     try {
-      const url = new URL(qrPayload);
+      const url = new URL(cleanQrPayload);
       if (url.protocol !== 'attendance:') {
         return res.status(400).json({ error: 'Invalid QR payload scheme' });
       }
 
       // Preserve classId casing when using attendance://<classId>/<totp>
-      const match = qrPayload.match(/^attendance:\/\/([^/]+)\/(.+)$/i);
+      const match = cleanQrPayload.match(/^attendance:\/\/([^/]+)\/(.+)$/i);
       if (match) {
         classId = match[1];
         clientTotp = match[2];
@@ -84,7 +92,7 @@ router.post('/mark', verifySession, attendanceLimiter, async (req, res) => {
     }
 
     // ── Step 6: Signature Verification ─────────────────────────────────────
-    const isValidSig = verifySignature(qrPayload, signature, device.public_key);
+    const isValidSig = verifySignature(cleanQrPayload, cleanSignature, device.public_key);
     if (!isValidSig) {
       logger.warn('Signature verification failed', { userId });
       return res.status(400).json({ error: 'Cryptographic verification failed.' });
@@ -105,7 +113,12 @@ router.post('/mark', verifySession, attendanceLimiter, async (req, res) => {
       ? scopedQuery.maybeSingle()
       : (scopedQuery || tokenQuery).single();
 
-    const { data: existingToken } = await queryPromise;
+    const { data: existingToken, error: tokenCheckErr } = await queryPromise;
+
+    if (tokenCheckErr && tokenCheckErr.code !== 'PGRST116') {
+      logger.error('Error querying processed tokens', { error: tokenCheckErr });
+      return res.status(500).json({ error: 'Database check failed. Please retry.' });
+    }
 
     if (existingToken) {
       logger.warn('Duplicate token replay attempt detected', { userId, token: clientTotp });

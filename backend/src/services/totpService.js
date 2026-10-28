@@ -1,11 +1,15 @@
 const { TOTP } = require('otpauth');
 
+const DEFAULT_SECRET = 'KVKXG2LEMYFA====';
+
 function getSecret() {
-  return (process.env.SHARED_CLASS_SECRET || 'KVKXG2LEMYFA====').trim();
+  const envSecret = (process.env.SHARED_CLASS_SECRET || '').trim();
+  return envSecret || DEFAULT_SECRET;
 }
 
 function getInterval() {
-  return parseInt(process.env.TOTP_INTERVAL || '10', 10);
+  const parsed = parseInt(process.env.TOTP_INTERVAL || '10', 10);
+  return Number.isNaN(parsed) || parsed <= 0 ? 10 : parsed;
 }
 
 /**
@@ -41,13 +45,23 @@ function validateTotp(clientCode) {
  * @returns {string} Current 6-digit TOTP code.
  */
 function generateCurrentTotp() {
-  const totp = new TOTP({
-    secret: getSecret(),
-    algorithm: 'SHA256',
-    digits: 6,
-    period: getInterval(),
-  });
-  return totp.generate();
+  try {
+    const totp = new TOTP({
+      secret: getSecret(),
+      algorithm: 'SHA256',
+      digits: 6,
+      period: getInterval(),
+    });
+    return totp.generate();
+  } catch (_err) {
+    const fallbackTotp = new TOTP({
+      secret: DEFAULT_SECRET,
+      algorithm: 'SHA256',
+      digits: 6,
+      period: 10,
+    });
+    return fallbackTotp.generate();
+  }
 }
 
 module.exports = { validateTotp, generateCurrentTotp };

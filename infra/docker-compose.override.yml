@@ -18,6 +18,6 @@ services:
       # Allow the Flutter app's custom scheme as a valid post-auth redirect
       GOTRUE_URI_ALLOW_LIST: "attendanceapp://login-callback"
       
-      # Restrict sign-ups to university email domain only
-      GOTRUE_EXTERNAL_EMAIL_ENABLED: "false"
-      GOTRUE_MAILER_AUTOCONFIRM: "false"
+      # Allow email sign-up and auto-confirm for local deployment
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: ${GOTRUE_EXTERNAL_EMAIL_ENABLED:-true}
+      GOTRUE_MAILER_AUTOCONFIRM: ${GOTRUE_MAILER_AUTOCONFIRM:-true}

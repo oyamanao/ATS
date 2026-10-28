@@ -26,7 +26,8 @@ router.get('/token', (req, res) => {
   const classId = sanitizeClassId(req.query.classId);
   const totpCode = generateCurrentTotp();
   const uri = `attendance://${classId}/${totpCode}`;
-  const interval = parseInt(process.env.TOTP_INTERVAL || '10', 10);
+  const parsedInterval = parseInt(process.env.TOTP_INTERVAL || '10', 10);
+  const interval = Number.isNaN(parsedInterval) || parsedInterval <= 0 ? 10 : parsedInterval;
   const now = Date.now();
   const secondsIntoInterval = Math.floor(now / 1000) % interval;
   const remainingSeconds = interval - secondsIntoInterval;
@@ -48,7 +49,8 @@ router.get('/token', (req, res) => {
 router.get('/display', (req, res) => {
   const classId = sanitizeClassId(req.query.classId);
   const escapedClassId = escapeHtml(classId);
-  const interval = parseInt(process.env.TOTP_INTERVAL || '10', 10);
+  const parsedInterval = parseInt(process.env.TOTP_INTERVAL || '10', 10);
+  const interval = Number.isNaN(parsedInterval) || parsedInterval <= 0 ? 10 : parsedInterval;
   const intervalMs = interval * 1000;
 
   res.send(`<!DOCTYPE html>

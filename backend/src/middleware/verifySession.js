@@ -9,7 +9,7 @@ if (!supabase) {
 
 /**
  * Express middleware: validates a Supabase JWT Bearer token and enforces
- * university email domain restriction.
+ * university email domain restriction (case-insensitive).
  *
  * On success, attaches `req.user` (the Supabase user object).
  */
@@ -36,7 +36,7 @@ async function verifySession(req, res, next) {
       return res.status(401).json({ error: 'Invalid or expired session' });
     }
 
-    if (!user.email || !user.email.endsWith(ALLOWED_EMAIL_DOMAIN)) {
+    if (!user.email || !user.email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN.toLowerCase())) {
       logger.warn('Non-university email rejected', { email: user.email });
       return res.status(403).json({ error: 'Access restricted to university accounts' });
     }

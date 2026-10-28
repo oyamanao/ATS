@@ -81,6 +81,22 @@ describe('Middleware Tests', () => {
       expect(req.user).toEqual(mockUser);
     });
 
+    it('should accept uppercase email domain case-insensitively', async () => {
+      req.headers.authorization = 'Bearer test_token';
+      const mockUser = {
+        id: 'u-123',
+        email: '21BCS001@IIITDWD.AC.IN',
+      };
+      jest.spyOn(supabase.auth, 'getUser').mockResolvedValueOnce({
+        data: { user: mockUser },
+        error: null,
+      });
+
+      await verifySession(req, res, next);
+      expect(next).toHaveBeenCalled();
+      expect(req.user).toEqual(mockUser);
+    });
+
     it('should return 500 when auth throws unexpected exception', async () => {
       req.headers.authorization = 'Bearer test_token';
       jest.spyOn(supabase.auth, 'getUser').mockRejectedValueOnce(new Error('Network failure'));

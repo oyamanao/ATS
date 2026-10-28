@@ -46,6 +46,16 @@ describe('POST /api/attendance/mark Comprehensive Tests', () => {
     expect(res.body.error).toContain('Missing qrPayload or signature');
   });
 
+  it('should return 400 if qrPayload or signature is not a string', async () => {
+    const res = await request(app)
+      .post('/api/attendance/mark')
+      .set('Authorization', 'Bearer valid_token')
+      .send({ qrPayload: 123456, signature: true });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('Missing qrPayload or signature');
+  });
+
   it('should return 400 if qrPayload is malformed', async () => {
     const res = await request(app)
       .post('/api/attendance/mark')

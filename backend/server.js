@@ -7,6 +7,17 @@ const teacherRoutes = require('./src/routes/teacher');
 
 const app = express();
 
+// Disable x-powered-by header for security
+app.disable('x-powered-by');
+
+// ── Security Headers ──────────────────────────────────────────────────────────
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 // ── Middleware ───────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10kb' })); // Prevent oversized payloads
 
@@ -35,8 +46,13 @@ app.use((_req, res) => {
 
 // ── Error Handler ────────────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    logger.warn('Malformed JSON payload received', { err: err.message });
+    return res.status(400).json({ error: 'Invalid JSON payload' });
+  }
+
   logger.error('Unhandled exception', { err });
-  res.status(500).json({ error: 'Internal server error' });
+  return res.status(500).json({ error: 'Internal server error' });
 });
 
 // ── Server Binding ───────────────────────────────────────────────────────────
