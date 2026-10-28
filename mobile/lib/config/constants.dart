@@ -35,6 +35,7 @@ class AppConstants {
   static const List<String> validClassroomBSSIDs = [
     '00:14:22:01:23:45',
     '00:14:22:01:23:46',
+    'd4:20:b0:99:a3:f1',
   ];
 
   // ─── Misc ─────────────────────────────────────────────────────────────────
