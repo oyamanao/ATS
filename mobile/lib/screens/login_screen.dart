@@ -72,16 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
     try {
-      if (!AppConstants.isSupabaseConfigured) {
-        // In local demo mode without remote Supabase, navigate directly to HomeScreen
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        }
-        return;
-      }
-
       await _auth.signInWithEmail(
         email: _emailController.text.trim(),
         password: _passwordController.text,
@@ -92,8 +82,13 @@ class _LoginScreenState extends State<LoginScreen> {
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       }
-    } catch (e) {
+    } on AuthException catch (e) {
       if (mounted) {
+        String message = e.message;
+        if (message.toLowerCase().contains('invalid login credentials')) {
+          message =
+              'Invalid email or password. Please verify your password or sign up.';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: const Color(0xFFDC2626),
@@ -102,7 +97,30 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             content: Text(
-              e.toString().replaceAll('Exception: ', ''),
+              message,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        String msg = e.toString().replaceAll('Exception: ', '');
+        if (msg.contains('SocketException') ||
+            msg.contains('Connection refused') ||
+            msg.contains('Failed host lookup')) {
+          msg =
+              'Cannot reach authentication gateway at ${AppConstants.supabaseLocalUrl}. Please ensure Docker containers are running.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            content: Text(
+              msg,
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
@@ -116,14 +134,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() => _isGoogleLoading = true);
     try {
-      if (!AppConstants.isSupabaseConfigured) {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        }
-        return;
-      }
       await _auth.signInWithGoogle();
     } catch (e) {
       if (mounted) {

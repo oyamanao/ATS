@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/constants.dart';
 import '../services/auth_service.dart';
 import 'home_screen.dart';
@@ -39,16 +40,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
     setState(() => _isLoading = true);
     try {
-      if (!AppConstants.isSupabaseConfigured) {
-        // In local demo mode, bypass remote Supabase
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        }
-        return;
-      }
-
       await _auth.signUpWithEmail(
         email: _emailController.text.trim(),
         password: _passwordController.text,
@@ -74,8 +65,13 @@ class _SignupScreenState extends State<SignupScreen> {
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       }
-    } catch (e) {
+    } on AuthException catch (e) {
       if (mounted) {
+        String message = e.message;
+        if (message.toLowerCase().contains('user already registered') ||
+            message.toLowerCase().contains('already exists')) {
+          message = 'An account with this email already exists. Please log in.';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: const Color(0xFFDC2626), // Red 600
@@ -84,7 +80,30 @@ class _SignupScreenState extends State<SignupScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             content: Text(
-              e.toString().replaceAll('Exception: ', ''),
+              message,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        String msg = e.toString().replaceAll('Exception: ', '');
+        if (msg.contains('SocketException') ||
+            msg.contains('Connection refused') ||
+            msg.contains('Failed host lookup')) {
+          msg =
+              'Cannot reach authentication gateway at ${AppConstants.supabaseLocalUrl}. Please ensure Docker containers are running.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFDC2626), // Red 600
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            content: Text(
+              msg,
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),

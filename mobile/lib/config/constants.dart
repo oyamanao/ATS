@@ -13,9 +13,12 @@ class AppConstants {
     'ATS_SUPABASE_URL',
     defaultValue: 'http://10.0.5.32:8000',
   );
+  static const String defaultSupabaseAnonKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzAwMDAwMDAwLCJleHAiOjIwNTAwMDAwMDB9.8iej_KelMbImwdSqAjKpH7b0s4P-ul6qvATIC3uOqKc';
+
   static const String supabaseAnonKey = String.fromEnvironment(
     'ATS_SUPABASE_ANON_KEY',
-    defaultValue: 'local-dev-anon-key',
+    defaultValue: defaultSupabaseAnonKey,
   );
 
   // ─── Campus GPS Boundary ──────────────────────────────────────────────────
@@ -46,6 +49,5 @@ class AppConstants {
   static bool get isSupabaseConfigured =>
       supabaseLocalUrl.isNotEmpty &&
       supabaseAnonKey.isNotEmpty &&
-      !supabaseAnonKey.contains('YOUR_') &&
-      !supabaseAnonKey.contains('local-dev-anon-key');
+      !supabaseAnonKey.contains('YOUR_');
 }
