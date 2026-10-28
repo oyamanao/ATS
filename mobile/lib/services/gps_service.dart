@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import '../config/constants.dart';
 import '../utils/error_codes.dart';
@@ -12,7 +13,7 @@ class GpsService {
       throw const AttendanceException(VerificationError.gpsUnavailable);
     }
 
-    final Position position;
+    Position? position;
     try {
       position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
@@ -21,6 +22,12 @@ class GpsService {
         ),
       );
     } catch (_) {
+      try {
+        position = await Geolocator.getLastKnownPosition();
+      } catch (_) {}
+    }
+
+    if (position == null) {
       throw const AttendanceException(VerificationError.gpsUnavailable);
     }
 
@@ -35,7 +42,18 @@ class GpsService {
       AppConstants.campusLng,
     );
 
-    if (distance > AppConstants.maxCampusRadiusMeters) {
+    // Account for GPS horizontal uncertainty indoors (position.accuracy)
+    final double effectiveDistance =
+        (distance - position.accuracy).clamp(0.0, double.infinity);
+
+    debugPrint(
+      'ATS GPS Verification: lat=${position.latitude}, lng=${position.longitude}, '
+      'rawDistance=${distance.toStringAsFixed(1)}m, accuracy=±${position.accuracy.toStringAsFixed(1)}m, '
+      'effectiveDistance=${effectiveDistance.toStringAsFixed(1)}m, maxRadius=${AppConstants.maxCampusRadiusMeters}m',
+    );
+
+    if (effectiveDistance > AppConstants.maxCampusRadiusMeters &&
+        distance > AppConstants.maxCampusRadiusMeters) {
       throw const AttendanceException(VerificationError.outsideCampus);
     }
 
