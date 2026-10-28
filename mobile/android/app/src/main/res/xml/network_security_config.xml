@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Network Security Config for Campus Local Intranet Access
-  Permits cleartext HTTP to university local subnet (10.0.5.x / 192.168.10.x / 10.x.x.x)
+  Permits cleartext HTTP to university local subnet (10.0.x.x / 192.168.x.x / 127.0.0.1)
   while strictly enforcing TLS/HTTPS for public internet traffic (Google OAuth).
 -->
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.15.137</domain>
         <domain includeSubdomains="true">10.0.5.32</domain>
-        <domain includeSubdomains="true">192.168.10.50</domain>
-        <domain includeSubdomains="true">10.0.2.2</domain> <!-- Android Emulator localhost bridge -->
+        <domain includeSubdomains="true">127.0.0.1</domain>
         <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">192.168.10.50</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
     </domain-config>
-    <base-config cleartextTrafficPermitted="false">
+    <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>

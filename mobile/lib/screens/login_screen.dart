@@ -105,13 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        String msg = e.toString().replaceAll('Exception: ', '');
-        if (msg.contains('SocketException') ||
-            msg.contains('Connection refused') ||
-            msg.contains('Failed host lookup')) {
-          msg =
-              'Cannot reach authentication gateway at ${AppConstants.supabaseLocalUrl}. Please ensure Docker containers are running.';
-        }
+        final msg = e.toString().replaceAll('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: const Color(0xFFDC2626),
@@ -274,7 +268,56 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? 'Please enter your password'
                           : null,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
+
+                    // Test Account Quick-Fill Card
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 9),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.12)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline,
+                              size: 16, color: Color(0xFFA5B4FC)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Default: student@iiitdwd.ac.in • password123',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: Colors.white.withOpacity(0.75),
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(44, 26),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () {
+                              _emailController.text = 'student@iiitdwd.ac.in';
+                              _passwordController.text = 'password123';
+                            },
+                            child: const Text(
+                              'Fill',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: Color(0xFFA5B4FC),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
 
                     // Email Sign-In Button
                     SizedBox(

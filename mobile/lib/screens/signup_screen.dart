@@ -88,13 +88,7 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     } catch (e) {
       if (mounted) {
-        String msg = e.toString().replaceAll('Exception: ', '');
-        if (msg.contains('SocketException') ||
-            msg.contains('Connection refused') ||
-            msg.contains('Failed host lookup')) {
-          msg =
-              'Cannot reach authentication gateway at ${AppConstants.supabaseLocalUrl}. Please ensure Docker containers are running.';
-        }
+        final msg = e.toString().replaceAll('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: const Color(0xFFDC2626), // Red 600

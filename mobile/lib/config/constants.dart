@@ -7,12 +7,17 @@ class AppConstants {
   // ─── Intranet Server ──────────────────────────────────────────────────────
   static const String localBackendUrl = String.fromEnvironment(
     'ATS_BACKEND_URL',
-    defaultValue: 'http://10.0.5.32:3000',
+    defaultValue: 'http://10.0.15.137:3000',
   );
   static const String supabaseLocalUrl = String.fromEnvironment(
     'ATS_SUPABASE_URL',
-    defaultValue: 'http://10.0.5.32:8000',
+    defaultValue: 'http://10.0.15.137:8000',
   );
+  static const List<String> fallbackBackendUrls = [
+    'http://10.0.15.137:3000',
+    'http://127.0.0.1:3000',
+    'http://10.0.5.32:3000',
+  ];
   static const String defaultSupabaseAnonKey =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzAwMDAwMDAwLCJleHAiOjIwNTAwMDAwMDB9.8iej_KelMbImwdSqAjKpH7b0s4P-ul6qvATIC3uOqKc';
 

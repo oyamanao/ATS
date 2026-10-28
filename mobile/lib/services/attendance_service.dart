@@ -62,23 +62,36 @@ class AttendanceService {
       signature: signature,
     );
 
-    final http.Response response;
-    try {
-      response = await http
-          .post(
-            Uri.parse('${AppConstants.localBackendUrl}/api/attendance/mark'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode(payload.toJson()),
-          )
-          .timeout(const Duration(seconds: 10));
-    } catch (_) {
-      throw const AttendanceException(VerificationError.serverRejected);
+    final endpoints = [
+      AppConstants.localBackendUrl,
+      'http://127.0.0.1:3000',
+      ...AppConstants.fallbackBackendUrls,
+    ];
+
+    bool succeeded = false;
+    for (final base in endpoints.toSet()) {
+      try {
+        final response = await http
+            .post(
+              Uri.parse('$base/api/attendance/mark'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $token',
+              },
+              body: jsonEncode(payload.toJson()),
+            )
+            .timeout(const Duration(seconds: 4));
+
+        if (response.statusCode == 200) {
+          succeeded = true;
+          break;
+        }
+      } catch (_) {
+        // Continue trying remaining endpoints
+      }
     }
 
-    if (response.statusCode != 200) {
+    if (!succeeded) {
       throw const AttendanceException(VerificationError.serverRejected);
     }
   }

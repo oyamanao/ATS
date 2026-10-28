@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'config/constants.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'services/auth_service.dart';
 
 class AttendanceApp extends StatelessWidget {
   const AttendanceApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final bool hasSupabaseSession = AppConstants.isSupabaseConfigured &&
-        Supabase.instance.client.auth.currentSession != null;
+    final bool isLoggedIn = AuthService.isLoggedIn;
 
     return MaterialApp(
       title: 'Anti-Cheat Indoor Attendance',
@@ -31,7 +29,7 @@ class AttendanceApp extends StatelessWidget {
         ),
         fontFamily: 'Roboto',
       ),
-      home: hasSupabaseSession ? const HomeScreen() : const LoginScreen(),
+      home: isLoggedIn ? const HomeScreen() : const LoginScreen(),
     );
   }
 }
