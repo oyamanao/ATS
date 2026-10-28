@@ -48,7 +48,9 @@ services:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
       GOTRUE_DB_DRIVER: postgres
-      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgrespassword}@postgres:5432/${POSTGRES_DB:-postgres}?sslmode=disable
+      GOTRUE_DB_SCHEMA: auth
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgrespassword}@postgres:5432/${POSTGRES_DB:-postgres}?sslmode=disable&search_path=auth
+      GOTRUE_DB_DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgrespassword}@postgres:5432/${POSTGRES_DB:-postgres}?sslmode=disable&search_path=auth
       GOTRUE_SITE_URL: ${APP_PUBLIC_URL:-http://localhost:3000}
       GOTRUE_URI_ALLOW_LIST: attendanceapp://login-callback
       GOTRUE_JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-token-with-at-least-32-chars-long}
