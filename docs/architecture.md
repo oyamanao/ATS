@@ -22,7 +22,7 @@ The system enforces physical and cryptographic attendance validation using a **D
 │                              Student Mobile Device                                     │
 │  ┌───────────────────────┐  ┌─────────────────────────┐  ┌──────────────────────────┐  │
 │  │ 1. GPS + Mock Check   │  │ 2. Router BSSID Match   │  │ 3. BLE RSSI > -70 dBm    │  │
-│  │ (Geofence ≤ 150m)     │  │ (Hardware AP Pinning)   │  │ (Physical Room Presence) │  │
+│  │ (Geofence ≤ 100m)     │  │ (Hardware AP Pinning)   │  │ (Physical Room Presence) │  │
 │  └───────────┬───────────┘  └────────────┬────────────┘  └────────────┬─────────────┘  │
 │              │                           │                            │                │
 │  ┌───────────▼───────────────────────────▼────────────────────────────▼─────────────┐  │

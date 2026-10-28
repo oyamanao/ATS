@@ -8,5 +8,6 @@ void main() {
     expect(AppConstants.supabaseLocalUrl, isNot(contains('YOUR_')));
     expect(AppConstants.supabaseAnonKey, isNot(contains('YOUR_')));
     expect(AppConstants.targetBeaconUUID, isNotEmpty);
+    expect(AppConstants.maxCampusRadiusMeters, equals(100.0));
   });
 }

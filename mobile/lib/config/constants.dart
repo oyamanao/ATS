@@ -21,7 +21,7 @@ class AppConstants {
   // ─── Campus GPS Boundary ──────────────────────────────────────────────────
   static const double campusLat = 15.3920;
   static const double campusLng = 75.0255;
-  static const double maxCampusRadiusMeters = 150.0;
+  static const double maxCampusRadiusMeters = 100.0;
 
   // ─── BLE Beacon ───────────────────────────────────────────────────────────
   /// UUID programmed into the ESP32 classroom beacon

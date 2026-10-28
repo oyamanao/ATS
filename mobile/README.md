@@ -59,7 +59,7 @@ static const String supabaseAnonKey = 'YOUR_SELF_HOSTED_SUPABASE_ANON_KEY';
 // Campus Geofence
 static const double campusLat = 15.3920;
 static const double campusLng = 75.0255;
-static const double maxCampusRadiusMeters = 150.0;
+static const double maxCampusRadiusMeters = 100.0;
 
 // Classroom Hardware
 static const String targetBeaconUUID = 'B9407F30-F5F8-466E-AFF9-25556B57FE6D';
